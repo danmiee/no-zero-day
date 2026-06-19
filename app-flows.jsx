@@ -10,9 +10,11 @@ function todayDisplayLabel() {
 }
 
 // ── HOME · 오늘 (tab root) ────────────────────────────────────
-function Home({ tasks, onPick, onAdd, onRemove, tab, onTab }) {
+function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
+  const isCalm = theme === 'calm';
   const line = tasks.length === 0 ? '오늘은 비웠네요. 푹 쉬어도 좋아요.'
+    : isCalm ? '전부 볼 필요 없어요. 하나만 같이 볼게요.'
     : tasks.length >= 3 ? '많아 보여도 괜찮아요. 딱 하나만요.'
     : '제일 쉬워 보이는 것부터 해볼까요?';
   const pickRandom = () => { if (tasks.length) onPick(tasks[Math.floor(Math.random() * tasks.length)]); };
@@ -24,8 +26,8 @@ function Home({ tasks, onPick, onAdd, onRemove, tab, onTab }) {
         <Eyebrow>{todayDisplayLabel()}</Eyebrow>
         <Spacer h={10} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ fontSize: 29, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>뭐부터<br />시작해볼까요?</div>
-          <Buddy size={54} mood="gentle" />
+          <div style={{ fontSize: isCalm ? 27 : 29, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{isCalm ? <React.Fragment>하나만<br />보면 돼요</React.Fragment> : <React.Fragment>뭐부터<br />시작해볼까요?</React.Fragment>}</div>
+          <Buddy size={54} mood={isCalm ? 'sleepy' : 'gentle'} />
         </div>
         <Spacer h={12} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: '11px 14px', boxShadow: 'var(--shadow-sm)' }}>
@@ -50,26 +52,36 @@ function Home({ tasks, onPick, onAdd, onRemove, tab, onTab }) {
           {focusOne && tasks.length > 0 && (
             <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginBottom: 2 }}>나머지는 잠깐 숨겼어요. 이거 하나만.</div>
           )}
-          {shown.map((x) => (
-            <Card key={x.id} onClick={() => onPick(x)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '17px 18px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
-                <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {x.note ? x.note : (
-                    <React.Fragment>
-                      <span>{x.when}</span>
-                      {x.time && <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--faint)' }} />}
-                      {x.time && <span>{x.time}</span>}
-                    </React.Fragment>
-                  )}
+          {shown.map((x, i) => {
+            const calmSecondary = isCalm && !focusOne && i > 0;
+            return (
+              <Card key={x.id} onClick={() => onPick(x)} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: isCalm && i === 0 ? '20px 18px' : '17px 18px',
+                background: calmSecondary ? 'color-mix(in oklch, var(--card) 62%, var(--bg))' : 'var(--card)',
+                border: calmSecondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
+                boxShadow: isCalm ? 'none' : undefined,
+                opacity: calmSecondary ? 0.72 : 1,
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: isCalm && i === 0 ? 18 : 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
+                  <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {x.note ? x.note : (
+                      <React.Fragment>
+                        <span>{x.when}</span>
+                        {x.time && <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--faint)' }} />}
+                        {x.time && <span>{x.time}</span>}
+                      </React.Fragment>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="tap" onClick={(e) => { e.stopPropagation(); onRemove(x.id); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)', flexShrink: 0 }}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-              </div>
-              <Chevron />
-            </Card>
-          ))}
+                <div className="tap" onClick={(e) => { e.stopPropagation(); onRemove(x.id); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)', flexShrink: 0 }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                </div>
+                <Chevron />
+              </Card>
+            );
+          })}
           {!focusOne && (
             <div className="tap" onClick={onAdd} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,

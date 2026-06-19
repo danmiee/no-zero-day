@@ -310,7 +310,7 @@ function Prototype() {
   if (nav.screen === 'tab') {
     if (nav.tab === 'records') return <Records history={state.history} streak={state.streak} tab="records" onTab={goTab} />;
     if (nav.tab === 'me') return <Profile state={state} onReset={store.reset} onTheme={store.setTheme} tab="me" onTab={goTab} />;
-    return <Home tasks={state.tasks} tab="home" onTab={goTab}
+    return <Home tasks={state.tasks} theme={state.theme || 'simple'} tab="home" onTab={goTab}
       onPick={(task) => setNav({ ...nav, screen: 'mood', task, mood: null })}
       onAdd={() => setNav({ ...nav, screen: 'add' })}
       onRemove={store.removeTask} />;
