@@ -5,6 +5,10 @@ const { useState, useEffect, useRef } = React;
 
 // ── DATA STORE ────────────────────────────────────────────────
 const STORE_KEY = 'gcn_store_v3';
+const THEME_KEY_MAP = { simple: 'garden', cute: 'exploration', calm: 'cafe' };
+function normalizeThemeKey(theme) {
+  return THEME_KEY_MAP[theme] || theme || 'garden';
+}
 
 const GENERIC_STEPS = [
   '아무것도 안 하고 그냥 자리에 앉기',
@@ -32,9 +36,12 @@ const SEED_HISTORY = [
 function loadStore() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...parsed, theme: normalizeThemeKey(parsed.theme) };
+    }
   } catch (e) {}
-  return { tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: 'simple', mood: null };
+  return { tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: 'garden', mood: null };
 }
 
 let _uid = Date.now();
@@ -62,8 +69,8 @@ function useStore() {
       history: [{ id: uid(), title, method, methodLabel, date: '방금', minutes, estimate: estimate || null }, ...s.history],
     }));
   };
-  const reset = () => setState({ tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: state.theme || 'simple', mood: null });
-  const setTheme = (theme) => setState((s) => ({ ...s, theme }));
+  const reset = () => setState({ tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: normalizeThemeKey(state.theme), mood: null });
+  const setTheme = (theme) => setState((s) => ({ ...s, theme: normalizeThemeKey(theme) }));
   const setMood = (mood) => setState((s) => ({ ...s, mood }));
 
   return { state, addTask, removeTask, completeSession, reset, setTheme, setMood };
@@ -91,15 +98,15 @@ const METHOD_META = {
 };
 
 const THEME_META = {
-  simple: { name: '정원', mascot: '새싹 콩이', home: '오늘의 정원', action: '돌보기' },
-  cute: { name: '탐험', mascot: '탐험 콩이', home: '오늘의 지도', action: '출발' },
-  calm: { name: '카페', mascot: '카페 콩이', home: '오늘의 자리', action: '착석' },
+  garden: { name: '정원', mascot: '새싹 콩이', home: '오늘의 정원', action: '돌보기' },
+  exploration: { name: '탐험', mascot: '탐험 콩이', home: '오늘의 지도', action: '출발' },
+  cafe: { name: '카페', mascot: '카페 콩이', home: '오늘의 자리', action: '착석' },
 };
 function currentThemeKey() {
-  return (document.documentElement.dataset.theme || 'simple');
+  return normalizeThemeKey(document.documentElement.dataset.theme);
 }
 function themeMeta(key) {
-  return THEME_META[key || currentThemeKey()] || THEME_META.simple;
+  return THEME_META[normalizeThemeKey(key || currentThemeKey())] || THEME_META.garden;
 }
 
 // ── PRIMITIVES ────────────────────────────────────────────────
@@ -202,13 +209,13 @@ function Buddy({ size = 96, mood = 'smile', pop }) {
     eyes = <g>{dot(35)}{dot(65)}</g>;
     mouth = <path d="M38 56 Q50 66 62 56" {...st} />;
   }
-  const accessory = theme === 'cute'
+  const accessory = theme === 'exploration'
     ? <g>
         <path d="M25 31 Q50 15 75 31 L70 38 Q50 31 30 38 Z" fill="var(--mascot-accent)" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
         <path d="M40 24 L50 14 L60 24" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         <path d="M22 70 Q35 78 48 72" fill="none" stroke="var(--mascot-accent)" strokeWidth="5" strokeLinecap="round" />
       </g>
-    : theme === 'calm'
+    : theme === 'cafe'
       ? <g>
           <path d="M28 23 H70 V31 Q49 38 28 31 Z" fill="var(--mascot-accent)" stroke={ink} strokeWidth="3" strokeLinejoin="round" />
           <path d="M68 45 h8 q5 0 5 6 q0 7-8 7 h-5" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" />
@@ -220,7 +227,7 @@ function Buddy({ size = 96, mood = 'smile', pop }) {
           <path d="M50 22 V32" stroke={ink} strokeWidth="2.5" strokeLinecap="round" />
         </g>;
   return (
-    <div style={{ width: size, height: size, borderRadius: theme === 'calm' ? '32% 32% 40% 40%' : '46% 54% 52% 48%', background: 'var(--mascot)', position: 'relative', flexShrink: 0, boxShadow: 'inset 0 -6px 14px rgba(0,0,0,0.05), var(--shadow-sm)', animation: pop ? 'buddyPop .6s cubic-bezier(.34,1.56,.64,1) both' : 'none' }}>
+    <div style={{ width: size, height: size, borderRadius: theme === 'cafe' ? '32% 32% 40% 40%' : '46% 54% 52% 48%', background: 'var(--mascot)', position: 'relative', flexShrink: 0, boxShadow: 'inset 0 -6px 14px rgba(0,0,0,0.05), var(--shadow-sm)', animation: pop ? 'buddyPop .6s cubic-bezier(.34,1.56,.64,1) both' : 'none' }}>
       <svg viewBox="0 0 100 100" width={size} height={size} style={{ position: 'absolute', inset: 0 }}>{accessory}{eyes}{mouth}{extra}</svg>
     </div>
   );
@@ -322,6 +329,7 @@ function TabBar({ active, onTab }) {
 
 Object.assign(window, {
   useStore, METHOD_META, THEME_META, GENERIC_STEPS, uid, MethodIcon, recommendMethod, RECO_WHY,
+  normalizeThemeKey,
   currentThemeKey, themeMeta,
   plantStage, PLANT_STAGES, Plant,
   ScreenShell, Eyebrow, Pad, Spacer, Grow, Card, BigButton, Chip, Chevron, Check, Buddy, TabBar,

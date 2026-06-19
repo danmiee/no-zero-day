@@ -13,10 +13,10 @@ function todayDisplayLabel() {
 function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
   const copy = {
-    simple: { title: ['오늘 뭘', '돌볼까요?'], line: '작은 씨앗 하나만 돌봐도 충분해요.', empty: '오늘 정원은 쉬는 날이에요. 물만 살짝 주고 쉬어요.' },
-    cute: { title: ['어디로', '떠날까요?'], line: '지도가 복잡해도 첫 표식만 찍으면 돼요.', empty: '오늘 지도는 비어 있어요. 쉬어 가도 좋아요.' },
-    calm: { title: ['자리에', '앉아볼까요?'], line: '따뜻하게 시작할 한 잔만 고르면 돼요.', empty: '오늘 카페는 조용해요. 잠깐 쉬어도 괜찮아요.' },
-  }[theme] || themeMeta('simple');
+    garden: { title: ['오늘 뭘', '돌볼까요?'], line: '작은 씨앗 하나만 돌봐도 충분해요.', empty: '오늘 정원은 쉬는 날이에요. 물만 살짝 주고 쉬어요.' },
+    exploration: { title: ['어디로', '떠날까요?'], line: '지도가 복잡해도 첫 표식만 찍으면 돼요.', empty: '오늘 지도는 비어 있어요. 쉬어 가도 좋아요.' },
+    cafe: { title: ['자리에', '앉아볼까요?'], line: '따뜻하게 시작할 한 잔만 고르면 돼요.', empty: '오늘 카페는 조용해요. 잠깐 쉬어도 괜찮아요.' },
+  }[theme] || themeMeta('garden');
   const line = tasks.length === 0 ? copy.empty : copy.line;
   const pickRandom = () => { if (tasks.length) onPick(tasks[Math.floor(Math.random() * tasks.length)]); };
   const shown = focusOne && tasks.length ? [tasks[0]] : tasks;
@@ -27,8 +27,8 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
         <Eyebrow>{todayDisplayLabel()}</Eyebrow>
         <Spacer h={10} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ fontSize: theme === 'cute' ? 30 : 28, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{copy.title[0]}<br />{copy.title[1]}</div>
-          <Buddy size={56} mood={theme === 'calm' ? 'sleepy' : theme === 'cute' ? 'cheer' : 'gentle'} />
+          <div style={{ fontSize: theme === 'exploration' ? 30 : 28, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{copy.title[0]}<br />{copy.title[1]}</div>
+          <Buddy size={56} mood={theme === 'cafe' ? 'sleepy' : theme === 'exploration' ? 'cheer' : 'gentle'} />
         </div>
         <Spacer h={12} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: '11px 14px', boxShadow: 'var(--shadow-sm)' }}>
@@ -60,8 +60,8 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
                 display: 'flex', alignItems: 'center', gap: 14,
                 padding: i === 0 ? '20px 18px' : '17px 18px',
                 background: secondary ? 'color-mix(in oklch, var(--surface) 72%, var(--bg))' : 'var(--surface)',
-                border: theme === 'cute' && i === 0 ? '1.5px dashed var(--peach-ink)' : secondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
-                boxShadow: theme === 'calm' ? 'none' : undefined,
+                border: theme === 'exploration' && i === 0 ? '1.5px dashed var(--peach-ink)' : secondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
+                boxShadow: theme === 'cafe' ? 'none' : undefined,
                 opacity: secondary ? 0.76 : 1,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -207,9 +207,9 @@ function MethodChooser({ task, onPick, onBack, recommended }) {
 const A_ACC = { accent: 'var(--lav)', accentInk: 'var(--lav-ink)' };
 function FlowA({ task, onBack, onHome, onComplete }) {
   const flowCopy = {
-    simple: { title: '작은 화단으로 나눴어요.', sub: '하나만 골라 돌보면 돼요.', done: '한 걸음씩 돌보니까 자라났어요.' },
-    cute: { title: '지도를 조각냈어요.', sub: '가장 가까운 표식부터 찍어요.', done: '표식을 찍다 보니 길이 열렸어요.' },
-    calm: { title: '메뉴를 작게 나눴어요.', sub: '한 잔씩 천천히 주문해요.', done: '천천히 해도 충분히 도착했어요.' },
+    garden: { title: '작은 화단으로 나눴어요.', sub: '하나만 골라 돌보면 돼요.', done: '한 걸음씩 돌보니까 자라났어요.' },
+    exploration: { title: '지도를 조각냈어요.', sub: '가장 가까운 표식부터 찍어요.', done: '표식을 찍다 보니 길이 열렸어요.' },
+    cafe: { title: '메뉴를 작게 나눴어요.', sub: '한 잔씩 천천히 주문해요.', done: '천천히 해도 충분히 도착했어요.' },
   }[currentThemeKey()] || { title: '작은 화단으로 나눴어요.', sub: '하나만 골라 돌보면 돼요.', done: '한 걸음씩 돌보니까 자라났어요.' };
   const [step, setStep] = useStateF('split');
   const [done, setDone] = useStateF([]);      // 완료된 단계 인덱스 배열
@@ -318,9 +318,9 @@ const B_DURS = ['10분', '25분', '45분'];
 const B_MIN = [10, 25, 45];
 function FlowB({ task, onBack, onHome, onComplete }) {
   const flowCopy = {
-    simple: { ask: '같이 물 주듯 시작해볼까요?', sub: '혼자 하기 싫은 일도 함께 돌보면 쉬워져요.', session: '정원 같이 돌보기' },
-    cute: { ask: '같이 탐험을 시작할까요?', sub: '혼자 가기 애매한 길은 나란히 걸으면 돼요.', session: '동행 탐험 세션' },
-    calm: { ask: '같은 테이블에 앉아볼까요?', sub: '조용히 옆자리를 지켜줄게요.', session: '카페 집중 자리' },
+    garden: { ask: '같이 물 주듯 시작해볼까요?', sub: '혼자 하기 싫은 일도 함께 돌보면 쉬워져요.', session: '정원 같이 돌보기' },
+    exploration: { ask: '같이 탐험을 시작할까요?', sub: '혼자 가기 애매한 길은 나란히 걸으면 돼요.', session: '동행 탐험 세션' },
+    cafe: { ask: '같은 테이블에 앉아볼까요?', sub: '조용히 옆자리를 지켜줄게요.', session: '카페 집중 자리' },
   }[currentThemeKey()] || { ask: '같이 물 주듯 시작해볼까요?', sub: '혼자 하기 싫은 일도 함께 돌보면 쉬워져요.', session: '정원 같이 돌보기' };
   const [step, setStep] = useStateF('propose');
   const [dur, setDur] = useStateF(1);
@@ -430,9 +430,9 @@ function FlowB({ task, onBack, onHome, onComplete }) {
 const C_ACC = { accent: 'var(--peach)', accentInk: 'var(--peach-ink)' };
 function FlowC({ task, onBack, onHome, onComplete }) {
   const flowCopy = {
-    simple: { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] },
-    cute: { title: '첫 발자국 · ', button: '5분만 출발하기', reward: ['첫 발자국을 찍었더니', '길이 보였어요!'] },
-    calm: { title: '첫 한 모금 · ', button: '5분만 앉아보기', reward: ['잠깐 앉았더니', '여기까지 왔어요!'] },
+    garden: { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] },
+    exploration: { title: '첫 발자국 · ', button: '5분만 출발하기', reward: ['첫 발자국을 찍었더니', '길이 보였어요!'] },
+    cafe: { title: '첫 한 모금 · ', button: '5분만 앉아보기', reward: ['잠깐 앉았더니', '여기까지 왔어요!'] },
   }[currentThemeKey()] || { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] };
   const [step, setStep] = useStateF('start');
 

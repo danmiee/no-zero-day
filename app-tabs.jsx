@@ -101,9 +101,9 @@ const fieldStyle = {
 function AddTask({ onAdd, onBack }) {
   const theme = currentThemeKey();
   const copy = {
-    simple: { eyebrow: '씨앗 추가', title: ['무엇을', '심어둘까요?'], field: '돌볼 일', placeholder: '예: 빨래 개기' },
-    cute: { eyebrow: '퀘스트 추가', title: ['어떤 길로', '떠날까요?'], field: '퀘스트', placeholder: '예: 빨래 개기' },
-    calm: { eyebrow: '주문 추가', title: ['무엇을', '주문해둘까요?'], field: '오늘의 주문', placeholder: '예: 빨래 개기' },
+    garden: { eyebrow: '씨앗 추가', title: ['무엇을', '심어둘까요?'], field: '돌볼 일', placeholder: '예: 빨래 개기' },
+    exploration: { eyebrow: '퀘스트 추가', title: ['어떤 길로', '떠날까요?'], field: '퀘스트', placeholder: '예: 빨래 개기' },
+    cafe: { eyebrow: '주문 추가', title: ['무엇을', '주문해둘까요?'], field: '오늘의 주문', placeholder: '예: 빨래 개기' },
   }[theme] || { eyebrow: '씨앗 추가', title: ['무엇을', '심어둘까요?'], field: '돌볼 일', placeholder: '예: 빨래 개기' };
   const [title, setTitle] = useS('');
   const [date, setDate] = useS(todayISO());
@@ -169,9 +169,9 @@ function Records({ history, streak, tab, onTab }) {
   const theme = currentThemeKey();
   const meta = themeMeta(theme);
   const copy = {
-    simple: { title: '자라난 순간들', week: '이번 주 정원 기록' },
-    cute: { title: '지나온 경로들', week: '이번 주 탐험 지도' },
-    calm: { title: '머문 시간들', week: '이번 주 카페 노트' },
+    garden: { title: '자라난 순간들', week: '이번 주 정원 기록' },
+    exploration: { title: '지나온 경로들', week: '이번 주 탐험 지도' },
+    cafe: { title: '머문 시간들', week: '이번 주 카페 노트' },
   }[theme] || { title: '자라난 순간들', week: '이번 주 정원 기록' };
   const totalMin = history.reduce((a, b) => a + b.minutes, 0);
   const week = history.length; // 데모: 전체를 이번 주로
@@ -252,13 +252,13 @@ function Records({ history, streak, tab, onTab }) {
 
 // ── 나 (profile) ──────────────────────────────────────────────
 function Profile({ state, onReset, onTheme, tab, onTab }) {
-  const theme = state.theme || 'simple';
+  const theme = normalizeThemeKey(state.theme);
   const meta = themeMeta(theme);
   const settings = [
     ['집중 알림', '하루 1번, 부드럽게'],
     ['마스코트', meta.mascot],
   ];
-  const themes = [['simple', '정원'], ['cute', '탐험'], ['calm', '카페']];
+  const themes = [['garden', '정원'], ['exploration', '탐험'], ['cafe', '카페']];
   return (
     <ScreenShell pb={0}>
       <Pad>
@@ -287,7 +287,7 @@ function Profile({ state, onReset, onTheme, tab, onTab }) {
         <Spacer h={10} />
         <Pad style={{ display: 'flex', gap: 8 }}>
           {themes.map(([k, l]) => (
-            <Chip key={k} active={(state.theme || 'simple') === k} onClick={() => onTheme(k)} style={{ flex: 1, textAlign: 'center', padding: '13px 0' }}>{l}</Chip>
+            <Chip key={k} active={normalizeThemeKey(state.theme) === k} onClick={() => onTheme(k)} style={{ flex: 1, textAlign: 'center', padding: '13px 0' }}>{l}</Chip>
           ))}
         </Pad>
         <Spacer h={22} />
@@ -321,13 +321,13 @@ function Prototype() {
   const goTab = (tab) => setNav({ tab, screen: 'tab', task: null, method: null });
   const goHome = () => setNav({ tab: 'home', screen: 'tab', task: null, method: null });
 
-  document.documentElement.dataset.theme = state.theme || 'simple';
-  useE(() => { document.documentElement.dataset.theme = state.theme || 'simple'; }, [state.theme]);
+  document.documentElement.dataset.theme = normalizeThemeKey(state.theme);
+  useE(() => { document.documentElement.dataset.theme = normalizeThemeKey(state.theme); }, [state.theme]);
 
   if (nav.screen === 'tab') {
     if (nav.tab === 'records') return <Records history={state.history} streak={state.streak} tab="records" onTab={goTab} />;
     if (nav.tab === 'me') return <Profile state={state} onReset={store.reset} onTheme={store.setTheme} tab="me" onTab={goTab} />;
-    return <Home tasks={state.tasks} theme={state.theme || 'simple'} tab="home" onTab={goTab}
+    return <Home tasks={state.tasks} theme={normalizeThemeKey(state.theme)} tab="home" onTab={goTab}
       onPick={(task) => setNav({ ...nav, screen: 'mood', task, mood: null })}
       onAdd={() => setNav({ ...nav, screen: 'add' })}
       onRemove={store.removeTask} />;
