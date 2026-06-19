@@ -25,9 +25,10 @@ function storeISOAddDays(n = 0) {
   d.setDate(d.getDate() + n);
   return d.getFullYear() + '-' + storeFmt(d.getMonth() + 1) + '-' + storeFmt(d.getDate());
 }
-function storeWhenLabel(iso, prefix = '오늘') {
+function storeWhenLabel(iso) {
   const [y, m, d] = iso.split('-').map(Number);
-  return `${prefix} (${STORE_WEEKDAYS[new Date(y, m - 1, d).getDay()]})`;
+  const day = STORE_WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  return `${String(y).slice(2)}.${storeFmt(m)}.${storeFmt(d)}.(${day})`;
 }
 
 const SEED_TASKS = [
@@ -54,7 +55,7 @@ function loadStore() {
         ...parsed,
         theme: normalizeThemeKey(parsed.theme),
         tasks: (parsed.tasks || []).map((task) => task.dateISO
-          ? { ...task, when: task.when && task.when.includes('(') ? task.when : storeWhenLabel(task.dateISO, task.when || '오늘') }
+          ? { ...task, when: storeWhenLabel(task.dateISO) }
           : task),
       };
     }
@@ -122,9 +123,9 @@ const METHOD_META = {
 };
 
 const THEME_META = {
-  garden: { name: '정원', mascot: '새싹 콩이', home: '오늘의 정원', action: '돌보기' },
-  exploration: { name: '탐험', mascot: '루트 콩이', home: '오늘의 지도', action: '출발' },
-  cafe: { name: '카페', mascot: '모카 콩이', home: '오늘의 자리', action: '착석' },
+  garden: { name: '정원', mascot: '새싹', home: '오늘의 정원', action: '돌보기' },
+  exploration: { name: '탐험', mascot: '루트', home: '오늘의 지도', action: '출발' },
+  cafe: { name: '카페', mascot: '모카', home: '오늘의 자리', action: '착석' },
 };
 function currentThemeKey() {
   return normalizeThemeKey(document.documentElement.dataset.theme);

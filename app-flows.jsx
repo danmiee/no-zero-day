@@ -137,7 +137,7 @@ function MoodCheck({ task, onConfirm, onSkip, onBack }) {
 // ── METHOD · 시작 방법 ────────────────────────────────────────
 const METHOD_LIST = [
   { id: 'a', name: '쪼개기', desc: '잘게 나눠 딱 한 걸음부터', accent: 'var(--lav)', accentInk: 'var(--lav-ink)' },
-  { id: 'b', name: '같이하기', desc: '콩이가 옆에서 함께 집중', accent: 'var(--mint)', accentInk: 'var(--mint-ink)' },
+  { id: 'b', name: '같이하기', desc: '옆에서 함께 집중', accent: 'var(--mint)', accentInk: 'var(--mint-ink)' },
   { id: 'c', name: '일단 5분', desc: '딱 5분만, 부담 없이 시작', accent: 'var(--peach)', accentInk: 'var(--peach-ink)' },
 ];
 

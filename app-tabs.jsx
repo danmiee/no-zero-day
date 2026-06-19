@@ -83,12 +83,9 @@ function weekdayFromISO(iso) {
 }
 function whenLabel(iso) {
   if (!iso) return '날짜 없음';
+  const [y, m, d] = iso.split('-').map(Number);
   const day = weekdayFromISO(iso);
-  if (iso === todayISO()) return `오늘 (${day})`;
-  if (iso === addDaysISO(1)) return `내일 (${day})`;
-  if (iso === addDaysISO(2)) return `모레 (${day})`;
-  const [, m, d] = iso.split('-');
-  return parseInt(m) + '월 ' + parseInt(d) + `일 (${day})`;
+  return `${String(y).slice(2)}.${fmt(m)}.${fmt(d)}.(${day})`;
 }
 function timeLabel(t) {
   if (!t) return null;
