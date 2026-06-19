@@ -75,7 +75,7 @@ function useStore() {
   const addTask = (task) => {
     const full = {
       id: uid(), t: task.t.trim(), when: task.when, dateISO: task.dateISO || null, time: task.time, timeValue: task.timeValue || '', note: null, estimate: task.estimate || null,
-      tiny: '딱 10초만 쳐다보기', steps: GENERIC_STEPS,
+      tiny: task.tiny || '딱 10초만 쳐다보기', steps: task.steps && task.steps.length ? task.steps : GENERIC_STEPS,
     };
     setState((s) => ({ ...s, tasks: [full, ...s.tasks] }));
     return full;

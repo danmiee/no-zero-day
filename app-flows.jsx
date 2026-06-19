@@ -4,7 +4,7 @@
 const { useState: useStateF } = React;
 
 // ── HOME · 오늘 (tab root) ────────────────────────────────────
-function Home({ tasks, theme, onPick, onAdd, onEdit, onRemove, tab, onTab }) {
+function Home({ tasks, theme, onPick, onAdd, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
   const copy = {
     garden: { title: ['오늘 뭘', '돌볼까요?'], line: '작은 씨앗 하나만 돌봐도 충분해요.', empty: '오늘 정원은 쉬는 날이에요. 물만 살짝 주고 쉬어요.' },
@@ -59,21 +59,18 @@ function Home({ tasks, theme, onPick, onAdd, onEdit, onRemove, tab, onTab }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
                   <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {x.note ? x.note : (
-                      <React.Fragment>
-                        <span>{x.when}</span>
-                        {x.time && <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--faint)' }} />}
-                        {x.time && <span>{x.time}</span>}
-                      </React.Fragment>
-                    )}
+                    <span>{x.when}</span>
+                    {x.time && <span style={{ width: 3, height: 3, borderRadius: 999, background: 'var(--faint)' }} />}
+                    {x.time && <span>{x.time}</span>}
+                  </div>
+                  <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 9 }}>
+                    <div style={{ flex: 1, height: 5, borderRadius: 999, background: 'var(--line)', overflow: 'hidden' }}>
+                      <div style={{ width: '0%', height: '100%', background: 'var(--lav-ink)' }} />
+                    </div>
+                    <span style={{ fontSize: 11.5, color: 'var(--faint)', whiteSpace: 'nowrap' }}>시작 전 · {(x.steps || []).length || 1}단계</span>
                   </div>
                 </div>
-                <div className="tap" onClick={(e) => { e.stopPropagation(); onEdit(x); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', flexShrink: 0 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 10.7l.6-2.4 5.9-5.9a1.4 1.4 0 0 1 2 2L5.6 10.3 3 10.7z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /><path d="M8.5 3.4l2.1 2.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-                </div>
-                <div className="tap" onClick={(e) => { e.stopPropagation(); onRemove(x.id); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)', flexShrink: 0 }}>
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                </div>
+                <Chevron />
               </Card>
             );
           })}
@@ -209,8 +206,11 @@ function FlowA({ task, onBack, onHome, onComplete }) {
   const [done, setDone] = useStateF([]);      // 완료된 단계 인덱스 배열
   const [cur, setCur] = useStateF(0);         // 지금 집중 중인 단계
   const [tiny, setTiny] = useStateF(false);   // 0번 단계 더 잘게
-  const steps = task.steps;
-  const label = (i) => (tiny && i === 0 ? task.tiny : steps[i]);
+  const [tinyLabel, setTinyLabel] = useStateF(task.tiny || '딱 10초만 쳐다보기');
+  const [steps, setSteps] = useStateF(task.steps && task.steps.length ? task.steps : GENERIC_STEPS);
+  const [draftLabel, setDraftLabel] = useStateF('');
+  const [editingCur, setEditingCur] = useStateF(false);
+  const label = (i) => (tiny && i === 0 ? tinyLabel : steps[i]);
   const isDone = (i) => done.indexOf(i) !== -1;
   const allDone = done.length >= steps.length;
 
@@ -237,7 +237,7 @@ function FlowA({ task, onBack, onHome, onComplete }) {
           {steps.map((s, i) => {
             const d = isDone(i);
             return (
-              <Card key={i} onClick={d ? undefined : () => { setCur(i); setStep('doing'); }}
+              <Card key={i} onClick={d ? undefined : () => { setCur(i); setDraftLabel(label(i)); setEditingCur(false); setStep('doing'); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '15px 17px', opacity: d ? 0.6 : 1, background: d ? 'var(--bg)' : 'var(--card)' }}>
                 <div style={{ width: 28, height: 28, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: d ? 'var(--accentInk)' : 'var(--accent)', color: d ? '#fff' : 'var(--accentInk)', fontSize: 14, fontWeight: 700 }}>
@@ -273,6 +273,23 @@ function FlowA({ task, onBack, onHome, onComplete }) {
         <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.34, letterSpacing: '-0.03em' }}>{label(cur)}</div>
         <Spacer h={16} />
         <div style={{ fontSize: 14, color: 'var(--muted)' }}>다른 건 생각하지 않아도 돼요.</div>
+        <Spacer h={14} />
+        {editingCur ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input value={draftLabel} onChange={(e) => setDraftLabel(e.target.value)} style={{ flex: 1, minWidth: 0, fontFamily: 'var(--ui)', fontSize: 15, color: 'var(--ink)', background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 14, padding: '12px 13px', outline: 'none' }} />
+            <Chip active={true} onClick={() => {
+              if (tiny && cur === 0) setTinyLabel(draftLabel.trim() || tinyLabel);
+              else {
+                const next = steps.slice();
+                next[cur] = draftLabel.trim() || steps[cur];
+                setSteps(next);
+              }
+              setEditingCur(false);
+            }} style={{ padding: '12px 14px' }}>저장</Chip>
+          </div>
+        ) : (
+          <Chip onClick={() => { setDraftLabel(label(cur)); setEditingCur(true); }} style={{ display: 'inline-flex', padding: '10px 14px', fontSize: 13.5 }}>이 단계만 바꾸기</Chip>
+        )}
       </Pad>
       <Grow />
       <Pad>

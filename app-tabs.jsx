@@ -114,6 +114,8 @@ function AddTask({ task, onAdd, onBack }) {
   const [date, setDate] = useS(task && task.dateISO ? task.dateISO : todayISO());
   const [time, setTime] = useS(task && task.timeValue ? task.timeValue : '');
   const [est, setEst] = useS(task && task.estimate ? task.estimate : null);
+  const [tiny, setTiny] = useS(task && task.tiny ? task.tiny : '딱 10초만 쳐다보기');
+  const [steps, setSteps] = useS(task && task.steps && task.steps.length ? task.steps : GENERIC_STEPS);
   const dateInputRef = useR(null);
   const quick = [['오늘', todayISO()], ['내일', addDaysISO(1)], ['모레', addDaysISO(2)]];
   const timeQuick = [['안 정함', ''], ['오전 9시', '09:00'], ['오후 2시', '14:00'], ['오후 6시', '18:00']];
@@ -124,6 +126,10 @@ function AddTask({ task, onAdd, onBack }) {
     if (input.showPicker) input.showPicker();
     else input.click();
   };
+  const updateStep = (idx, value) => setSteps((items) => items.map((item, i) => i === idx ? value : item));
+  const removeStep = (idx) => setSteps((items) => items.length <= 1 ? items : items.filter((_, i) => i !== idx));
+  const addStep = () => setSteps((items) => [...items, '']);
+  const cleanSteps = () => steps.map((s) => s.trim()).filter(Boolean);
 
   return (
     <ScreenShell onBack={onBack}>
@@ -171,11 +177,34 @@ function AddTask({ task, onAdd, onBack }) {
             <Spacer h={8} />
             <div style={{ fontSize: 12.5, color: 'var(--faint)' }}>나중에 실제 걸린 시간과 비교해서 보여드려요.</div>
           </div>
+
+          <div>
+            <Eyebrow style={{ marginBottom: 9 }}>쪼개기 단계</Eyebrow>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {steps.map((stepText, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ width: 26, height: 26, borderRadius: 999, background: 'var(--lav)', color: 'var(--lav-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</span>
+                  <input value={stepText} onChange={(e) => updateStep(idx, e.target.value)} placeholder="작은 단계 입력" style={{ ...fieldStyle, width: 'auto', minWidth: 0, padding: '12px 13px', fontSize: 14.5, flex: 1 }} />
+                  <div className="tap" onClick={() => removeStep(idx)} style={{ width: 32, height: 32, borderRadius: 999, border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)', flexShrink: 0 }}>
+                    <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Spacer h={9} />
+            <Chip onClick={addStep} style={{ display: 'inline-flex', padding: '10px 14px', fontSize: 13.5 }}>단계 추가</Chip>
+            <Spacer h={14} />
+            <Eyebrow style={{ marginBottom: 9 }}>첫 단계가 클 때</Eyebrow>
+            <input value={tiny} onChange={(e) => setTiny(e.target.value)} placeholder="예: 딱 10초만 쳐다보기" style={fieldStyle} />
+          </div>
         </Pad>
         <Spacer h={20} />
       </div>
       <Pad>
-        <BigButton kind="primary" disabled={!title.trim()} onClick={() => onAdd({ t: title, when: whenLabel(date), dateISO: date, time: timeLabel(time), timeValue: time, estimate: est })}>
+        <BigButton kind="primary" disabled={!title.trim()} onClick={() => {
+          const nextSteps = cleanSteps();
+          onAdd({ t: title, when: whenLabel(date), dateISO: date, time: timeLabel(time), timeValue: time, estimate: est, steps: nextSteps.length ? nextSteps : GENERIC_STEPS, tiny });
+        }}>
           {title.trim() ? (editing ? '수정하기' : '추가하기') : '할 일을 입력해 주세요'}
         </BigButton>
       </Pad>
@@ -369,9 +398,7 @@ function Prototype() {
       onRemove={store.removeTask} tab="me" onTab={goTab} />;
     return <Home tasks={state.tasks} theme={normalizeThemeKey(state.theme)} tab="home" onTab={goTab}
       onPick={(task) => setNav({ ...nav, screen: 'mood', task, mood: null })}
-      onAdd={() => setNav({ ...nav, screen: 'add' })}
-      onEdit={(task) => setNav({ tab: 'home', screen: 'edit', task })}
-      onRemove={store.removeTask} />;
+      onAdd={() => setNav({ ...nav, screen: 'add' })} />;
   }
 
   if (nav.screen === 'add')
