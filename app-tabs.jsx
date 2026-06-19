@@ -266,7 +266,7 @@ function Profile({ state, onReset, onTheme, tab, onTab }) {
       </Pad>
       <Spacer h={14} />
       <Pad style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <Plant seeds={state.seeds} size={104} />
+        <ThemeProgressVisual theme={theme} seeds={state.seeds} size={104} />
         <Spacer h={6} />
         <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{state.name}님의 {meta.name} 모드</div>
         <Spacer h={4} />
