@@ -1,0 +1,297 @@
+// app-ui.jsx — shared primitives + data store. Load FIRST.
+// Exports everything to window so app-flows.jsx / app-tabs.jsx can use them.
+
+const { useState, useEffect, useRef } = React;
+
+// ── DATA STORE ────────────────────────────────────────────────
+const STORE_KEY = 'gcn_store_v3';
+
+const GENERIC_STEPS = [
+  '아무것도 안 하고 그냥 자리에 앉기',
+  '필요한 것 딱 1개만 꺼내기',
+  '1분만 손대보기',
+  '5분만 이어가기',
+  '한 단계만 더 해보기',
+];
+
+const SEED_TASKS = [
+  { id: 't1', t: '방 정리하기', when: '오늘', time: null, note: '3일째 미루는 중', tiny: '바닥의 옷 1개만 줍기',
+    steps: ['바닥의 옷 3개만 줍기', '쓰레기 한 줌 버리기', '책상 위 컵 치우기', '이불 펴기', '창문 열기'] },
+  { id: 't2', t: '이메일 답장 보내기', when: '오늘', time: '오후 2:00', note: '2일째 미루는 중', tiny: '받은편지함만 열어보기',
+    steps: ['받은편지함 열기', '답장할 메일 1개만 고르기', '인사말 한 줄 쓰기', '핵심 한 문장 쓰기', '보내기 누르기'] },
+  { id: 't3', t: '보고서 초안 쓰기', when: '오늘', time: '오후 6:00', note: '오늘까지', tiny: '빈 문서만 열기',
+    steps: ['빈 문서 열기', '제목만 적기', '목차 3줄 쓰기', '첫 문단 아무거나 쓰기', '한 단락 더 쓰기'] },
+];
+
+const SEED_HISTORY = [
+  { id: 'h1', title: '설거지', method: 'b', methodLabel: '같이하기', date: '어제', minutes: 25 },
+  { id: 'h2', title: '운동복 갈아입기', method: 'c', methodLabel: '일단 5분', date: '어제', minutes: 23 },
+  { id: 'h3', title: '책상 정리', method: 'a', methodLabel: '쪼개기', date: '2일 전', minutes: 8 },
+];
+
+function loadStore() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: 'simple', mood: null };
+}
+
+let _uid = Date.now();
+const uid = () => 'id' + (_uid++);
+
+function useStore() {
+  const [state, setState] = useState(loadStore);
+  useEffect(() => {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }, [state]);
+
+  const addTask = (task) => {
+    const full = {
+      id: uid(), t: task.t.trim(), when: task.when, time: task.time, note: null, estimate: task.estimate || null,
+      tiny: '딱 10초만 쳐다보기', steps: GENERIC_STEPS,
+    };
+    setState((s) => ({ ...s, tasks: [full, ...s.tasks] }));
+    return full;
+  };
+  const removeTask = (id) => setState((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }));
+  const completeSession = (title, method, methodLabel, minutes, estimate) => {
+    setState((s) => ({
+      ...s,
+      seeds: s.seeds + 1,
+      history: [{ id: uid(), title, method, methodLabel, date: '방금', minutes, estimate: estimate || null }, ...s.history],
+    }));
+  };
+  const reset = () => setState({ tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: state.theme || 'simple', mood: null });
+  const setTheme = (theme) => setState((s) => ({ ...s, theme }));
+  const setMood = (mood) => setState((s) => ({ ...s, mood }));
+
+  return { state, addTask, removeTask, completeSession, reset, setTheme, setMood };
+}
+
+// 기분·에너지 → 추천 방식
+function recommendMethod(mood) {
+  if (!mood) return 'c';
+  if (mood.energy === '낮음') return 'c';
+  if (mood.feel === '외로움') return 'b';
+  if (mood.feel === '막막함' || mood.feel === '불안함') return 'a';
+  if (mood.energy === '높음') return 'a';
+  return 'c';
+}
+const RECO_WHY = {
+  a: '마음이 복잡할 땏, 잘게 쪼개면 가볜워져요',
+  b: '혼자가 아니라는 게 제일 큰 힘이 돼요',
+  c: '지금은 딱 5분이면 충분해요',
+};
+
+const METHOD_META = {
+  a: { name: '쪼개기', accent: 'var(--lav)', accentInk: 'var(--lav-ink)' },
+  b: { name: '같이하기', accent: 'var(--mint)', accentInk: 'var(--mint-ink)' },
+  c: { name: '일단 5분', accent: 'var(--peach)', accentInk: 'var(--peach-ink)' },
+};
+
+// ── PRIMITIVES ────────────────────────────────────────────────
+function ScreenShell({ accent, accentInk, tint, onBack, onReset, pb, children }) {
+  return (
+    <div style={{
+      height: '100%', boxSizing: 'border-box',
+      paddingTop: (onBack || onReset) ? 52 : 56, paddingBottom: pb != null ? pb : 24,
+      display: 'flex', flexDirection: 'column',
+      background: tint || 'var(--bg)',
+      ['--accent']: accent || 'var(--lav)',
+      ['--accentInk']: accentInk || 'var(--lav-ink)',
+      fontFamily: 'var(--ui)', letterSpacing: '-0.011em',
+      color: 'var(--ink)', animation: 'wfslide .3s cubic-bezier(.22,.61,.36,1) both',
+    }}>
+      {(onBack || onReset) && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px 10px' }}>
+          {onBack
+            ? <div className="tap" onClick={onBack} style={{ width: 38, height: 38, borderRadius: 999, border: '1px solid var(--line)', background: 'var(--card)', boxShadow: 'var(--shadow-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M7.5 1.5L2 7.5l5.5 6" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </div>
+            : <div style={{ width: 38 }} />}
+          {onReset
+            ? <div className="tap" onClick={onReset} style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: 0.5, color: 'var(--faint)', padding: '8px 6px' }}>↺ 처음으로</div>
+            : <div style={{ width: 38 }} />}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function Eyebrow({ children, style }) {
+  return <div style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 500, letterSpacing: 1.4, textTransform: 'uppercase', color: 'var(--faint)', ...style }}>{children}</div>;
+}
+function Pad({ children, style }) { return <div style={{ padding: '0 24px', ...style }}>{children}</div>; }
+function Spacer({ h }) { return <div style={{ height: h }} />; }
+function Grow() { return <div style={{ flex: 1 }} />; }
+
+function Card({ children, style, onClick }) {
+  return (
+    <div className={onClick ? 'tap' : undefined} onClick={onClick} style={{
+      background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 24, padding: 18,
+      boxShadow: 'var(--shadow-sm)', ...style,
+    }}>{children}</div>
+  );
+}
+
+function BigButton({ children, kind = 'primary', style, onClick, disabled }) {
+  const base = { width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 18, padding: '18px 20px', fontFamily: 'inherit', fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', textAlign: 'center' };
+  const looks = {
+    primary: { background: 'var(--accent)', color: 'var(--accentInk)', boxShadow: '0 4px 14px -4px color-mix(in oklch, var(--accentInk) 32%, transparent)' },
+    ghost: { background: 'var(--card)', color: 'var(--muted)', border: '1px solid var(--line)', fontWeight: 500, boxShadow: 'var(--shadow-sm)' },
+  };
+  const off = disabled ? { opacity: 0.4, pointerEvents: 'none' } : null;
+  return <div className="tap" onClick={onClick} style={{ ...base, ...looks[kind], ...off, ...style }}>{children}</div>;
+}
+
+function Chip({ children, active, style, onClick }) {
+  return (
+    <div className="tap" onClick={onClick} style={{
+      padding: '10px 16px', borderRadius: 999, fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap',
+      border: active ? '1.5px solid var(--accentInk)' : '1px solid var(--line)',
+      background: active ? 'var(--accent)' : 'var(--card)', boxShadow: active ? 'none' : 'var(--shadow-sm)',
+      color: active ? 'var(--accentInk)' : 'var(--muted)', fontWeight: active ? 600 : 500, ...style,
+    }}>{children}</div>
+  );
+}
+
+function Chevron() {
+  return <svg width="9" height="15" viewBox="0 0 9 15" fill="none" style={{ flexShrink: 0 }}><path d="M1.5 1.5L7 7.5l-5.5 6" stroke="var(--faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+function Check({ done }) {
+  return (
+    <div style={{ width: 30, height: 30, borderRadius: 999, flexShrink: 0, border: done ? 'none' : '2px solid var(--faint)', background: done ? 'var(--accentInk)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {done && <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 8l3 3 6-7" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+    </div>
+  );
+}
+function Buddy({ size = 96, mood = 'smile', pop }) {
+  const ink = 'var(--accentInk)';
+  const st = { fill: 'none', stroke: ink, strokeWidth: 4.4, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const dot = (cx) => <circle cx={cx} cy="43" r="4.2" fill={ink} />;
+  let eyes, mouth, extra = null;
+  if (mood === 'cheer') {
+    eyes = <g {...st}><path d="M30 45 Q35 39 40 45" /><path d="M60 45 Q65 39 70 45" /></g>;
+    mouth = <path d="M35 55 Q50 70 65 55" {...st} />;
+    extra = <g {...st} strokeWidth="3.4"><path d="M20 30l3 3M80 30l-3 3M50 16v4" /></g>;
+  } else if (mood === 'gentle') {
+    eyes = <g {...st}><path d="M31 44 Q35 41 39 44" /><path d="M61 44 Q65 41 69 44" /></g>;
+    mouth = <path d="M42 58 Q50 63 58 58" {...st} />;
+  } else if (mood === 'sleepy') {
+    eyes = <g {...st}><path d="M31 43 H39" /><path d="M61 43 H69" /></g>;
+    mouth = <circle cx="50" cy="60" r="3.4" {...st} />;
+  } else if (mood === 'wink') {
+    eyes = <g><path d="M31 43 H39" {...st} />{dot(65)}</g>;
+    mouth = <path d="M38 56 Q50 65 62 56" {...st} />;
+  } else {
+    eyes = <g>{dot(35)}{dot(65)}</g>;
+    mouth = <path d="M38 56 Q50 66 62 56" {...st} />;
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: '46% 54% 52% 48%', background: 'var(--accent)', position: 'relative', flexShrink: 0, boxShadow: 'inset 0 -6px 14px rgba(0,0,0,0.04)', animation: pop ? 'buddyPop .6s cubic-bezier(.34,1.56,.64,1) both' : 'none' }}>
+      <svg viewBox="0 0 100 100" width={size} height={size} style={{ position: 'absolute', inset: 0 }}>{eyes}{mouth}{extra}</svg>
+    </div>
+  );
+}
+
+// 씨앗 → 식물 성장 (모은 씨앗 수에 따라)
+const PLANT_STAGES = ['씨앗', '새싹', '잎 두 장', '큰 잎', '꽃봉오리', '활짝 핀 꽃'];
+function plantStage(seeds) {
+  return seeds <= 0 ? 0 : seeds <= 2 ? 1 : seeds <= 5 ? 2 : seeds <= 9 ? 3 : seeds <= 14 ? 4 : 5;
+}
+function Plant({ seeds = 0, size = 120 }) {
+  const stage = plantStage(seeds);
+  const leaf = 'var(--mint)', leafInk = 'var(--mint-ink)';
+  const potA = 'var(--peach)', potB = 'var(--peach-ink)';
+  const stemH = [0, 14, 30, 46, 56, 60][stage];
+  const top = 96 - stemH;
+  return (
+    <svg viewBox="0 0 100 120" width={size} height={size * 1.2}>
+      {/* pot */}
+      <path d="M28 96 L72 96 L66 116 L34 116 Z" fill={potA} stroke={potB} strokeWidth="2.5" strokeLinejoin="round" />
+      <ellipse cx="50" cy="96" rx="22" ry="5" fill={potB} opacity="0.25" />
+      {/* stem */}
+      {stage >= 1 && <path d={`M50 96 L50 ${top}`} stroke={leafInk} strokeWidth="3.4" strokeLinecap="round" fill="none" />}
+      {/* leaves */}
+      {stage === 1 && <g><path d="M50 88 Q40 82 44 92 Q50 90 50 88" fill={leaf} stroke={leafInk} strokeWidth="1.6" /><path d="M50 84 Q60 78 56 88 Q50 86 50 84" fill={leaf} stroke={leafInk} strokeWidth="1.6" /></g>}
+      {stage >= 2 && <g stroke={leafInk} strokeWidth="1.8">
+        <path d={`M50 ${top + 22} Q32 ${top + 14} 40 ${top + 30} Q50 ${top + 26} 50 ${top + 22}`} fill={leaf} />
+        <path d={`M50 ${top + 18} Q68 ${top + 10} 60 ${top + 26} Q50 ${top + 22} 50 ${top + 18}`} fill={leaf} />
+      </g>}
+      {stage >= 3 && <g stroke={leafInk} strokeWidth="1.8">
+        <path d={`M50 ${top + 10} Q30 ${top + 2} 39 ${top + 18} Q50 ${top + 14} 50 ${top + 10}`} fill={leaf} />
+        <path d={`M50 ${top + 6} Q70 ${top - 2} 61 ${top + 14} Q50 ${top + 10} 50 ${top + 6}`} fill={leaf} />
+      </g>}
+      {/* bud / flower */}
+      {stage === 4 && <circle cx="50" cy={top} r="7" fill={potA} stroke={potB} strokeWidth="2" />}
+      {stage >= 5 && <g>
+        {[0, 72, 144, 216, 288].map((deg) => {
+          const r = deg * Math.PI / 180;
+          return <ellipse key={deg} cx={50 + Math.cos(r) * 9} cy={top + Math.sin(r) * 9} rx="6" ry="9" fill={potA} stroke={potB} strokeWidth="1.6" transform={`rotate(${deg} ${50 + Math.cos(r) * 9} ${top + Math.sin(r) * 9})`} />;
+        })}
+        <circle cx="50" cy={top} r="6" fill="var(--peach-ink)" />
+      </g>}
+    </svg>
+  );
+}
+
+const TAB_ICONS = {
+  오늘: (a) => <path d="M4 9.5L11 4l7 5.5V18a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1V9.5z" fill={a ? 'var(--lav-ink)' : 'none'} stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinejoin="round" />,
+  기록: (a) => <g stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinecap="round"><path d="M6 5h10M6 11h10M6 17h6" /></g>,
+  나: (a) => <g fill="none" stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6"><circle cx="11" cy="8" r="3.2" /><path d="M5 18c0-3.3 2.7-5 6-5s6 1.7 6 5" strokeLinecap="round" /></g>,
+};
+
+// ── METHOD ICONS ──────────────────────────────────────────────
+function MethodIcon({ id, color, size = 22 }) {
+  const c = color || 'var(--accentInk)';
+  const common = { fill: 'none', stroke: c, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24">
+      {id === 'a' && (
+        <g {...common}>
+          <rect x="4" y="4" width="16" height="16" rx="4" />
+          <path d="M12 4v16M4 12h16" />
+        </g>
+      )}
+      {id === 'b' && (
+        <g {...common}>
+          <circle cx="8" cy="9" r="2.6" />
+          <circle cx="16" cy="9" r="2.6" />
+          <path d="M3.5 18.5c0-2.8 2-4.3 4.5-4.3s4.5 1.5 4.5 4.3" />
+          <path d="M11.5 18.5c0-2.8 2-4.3 4.5-4.3s4.5 1.5 4.5 4.3" />
+        </g>
+      )}
+      {id === 'c' && (
+        <g {...common}>
+          <circle cx="12" cy="13.5" r="7" />
+          <path d="M12 6.5v-3M9.5 3.5h5M12 13.5l3.2-2.6" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
+function TabBar({ active, onTab }) {
+  const items = [['오늘', 'home'], ['기록', 'records'], ['나', 'me']];
+  return (
+    <div style={{ display: 'flex', gap: 8, padding: '14px 24px 8px', borderTop: '1px solid var(--line)', background: 'var(--bg)', boxShadow: '0 -7px 20px -12px rgba(30,28,40,0.16)', position: 'sticky', bottom: 0, zIndex: 5, flexShrink: 0 }}>
+      {items.map(([label, key]) => {
+        const a = active === key;
+        return (
+          <div key={key} className="tap" onClick={() => onTab(key)} style={{ flex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
+            <svg width="22" height="22" viewBox="0 0 22 23">{TAB_ICONS[label](a)}</svg>
+            <span style={{ fontSize: 11, fontWeight: a ? 600 : 500, whiteSpace: 'nowrap', color: a ? 'var(--ink)' : 'var(--faint)' }}>{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+Object.assign(window, {
+  useStore, METHOD_META, GENERIC_STEPS, uid, MethodIcon, recommendMethod, RECO_WHY,
+  plantStage, PLANT_STAGES, Plant,
+  ScreenShell, Eyebrow, Pad, Spacer, Grow, Card, BigButton, Chip, Chevron, Check, Buddy, TabBar,
+});

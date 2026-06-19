@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>귀차니즘 극복 도우미 · 와이어프레임</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: oklch(0.99 0.004 95);
+    --card: #ffffff;
+    --ink: oklch(0.3 0.014 285);
+    --muted: oklch(0.585 0.014 285);
+    --faint: oklch(0.72 0.012 285);
+    --line: oklch(0.925 0.005 285);
+
+    --lav: oklch(0.92 0.04 295);
+    --lav-ink: oklch(0.52 0.09 295);
+    --mint: oklch(0.93 0.045 165);
+    --mint-ink: oklch(0.5 0.075 165);
+    --mint-soft: oklch(0.975 0.02 165);
+    --peach: oklch(0.93 0.05 60);
+    --peach-ink: oklch(0.56 0.1 55);
+    --peach-soft: oklch(0.98 0.022 60);
+    --sky: oklch(0.93 0.04 235);
+    --sky-ink: oklch(0.52 0.085 240);
+
+    --ui: "Pretendard", "Pretendard Variable", -apple-system, system-ui, sans-serif;
+    --mono: "Spline Sans Mono", ui-monospace, monospace;
+    --shadow-sm: 0 1px 2px rgba(30,28,40,0.04), 0 2px 8px rgba(30,28,40,0.04);
+    --shadow-md: 0 2px 4px rgba(30,28,40,0.04), 0 10px 26px rgba(30,28,40,0.07);
+  }
+  /* 귀여움 — candy pastels, warm pink base */
+  html[data-theme="cute"] {
+    --bg: oklch(0.985 0.014 350);
+    --card: #fffdfe;
+    --ink: oklch(0.36 0.05 350);
+    --muted: oklch(0.6 0.04 350);
+    --faint: oklch(0.76 0.03 348);
+    --line: oklch(0.92 0.025 348);
+    --lav: oklch(0.9 0.075 330);
+    --lav-ink: oklch(0.56 0.17 332);
+    --mint: oklch(0.91 0.085 178);
+    --mint-ink: oklch(0.56 0.13 180);
+    --mint-soft: oklch(0.965 0.035 178);
+    --peach: oklch(0.9 0.085 38);
+    --peach-ink: oklch(0.62 0.17 34);
+    --peach-soft: oklch(0.97 0.03 38);
+  }
+  /* 차분함 — desaturated, cool & quiet */
+  html[data-theme="calm"] {
+    --bg: oklch(0.965 0.008 240);
+    --card: #fbfcfd;
+    --ink: oklch(0.34 0.018 250);
+    --muted: oklch(0.55 0.014 250);
+    --faint: oklch(0.7 0.011 250);
+    --line: oklch(0.9 0.008 250);
+    --lav: oklch(0.88 0.032 268);
+    --lav-ink: oklch(0.5 0.06 268);
+    --mint: oklch(0.88 0.03 178);
+    --mint-ink: oklch(0.48 0.05 186);
+    --mint-soft: oklch(0.95 0.016 180);
+    --peach: oklch(0.89 0.034 72);
+    --peach-ink: oklch(0.54 0.07 64);
+    --peach-soft: oklch(0.955 0.018 72);
+  }
+  * { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  html, body { margin: 0; height: 100%; background: var(--bg); font-family: var(--ui); transition: background .35s ease; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #phone { transform-origin: center; }
+  .tap { cursor: pointer; transition: transform .08s ease, filter .12s ease; -webkit-tap-highlight-color: transparent; }
+  .tap:hover { filter: brightness(0.985); }
+  .tap:active { transform: scale(0.975); }
+  @keyframes wfslide { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes buddyPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.12); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes livePulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+  @media (prefers-reduced-motion: reduce) { [style*="wfslide"], [style*="buddyPop"] { animation: none !important; } }
+</style>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="oklch(0.93 0.045 165)" />
+    <rect x="34" y="22" width="32" height="56" rx="9" fill="#fff" stroke="oklch(0.5 0.075 165)" stroke-width="2.2" />
+    <circle cx="50" cy="58" r="6" fill="oklch(0.5 0.075 165)" />
+    <path d="M44 58l4 4 8-9" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+</template>
+</head>
+<body>
+<div id="stage"><div id="phone"><div id="root"></div></div></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="app-ui.jsx"></script>
+<script type="text/babel" src="app-flows.jsx"></script>
+<script type="text/babel" src="app-tabs.jsx"></script>
+
+<script type="text/babel">
+const W = 402, H = 860;
+
+function App() {
+  return <IOSDevice width={W} height={H}><Prototype /></IOSDevice>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+// fit the fixed-size phone into any viewport
+function fitPhone() {
+  const el = document.getElementById('phone');
+  if (!el) return;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (!vw || !vh) return; // ignore pre-layout ticks where dims are 0
+  const s = Math.max(0.1, Math.min(1, (vh - 40) / H, (vw - 40) / W));
+  el.style.transform = 'scale(' + s + ')';
+}
+window.addEventListener('resize', fitPhone);
+window.addEventListener('load', fitPhone);
+if (window.ResizeObserver) new ResizeObserver(fitPhone).observe(document.documentElement);
+requestAnimationFrame(fitPhone);
+requestAnimationFrame(() => requestAnimationFrame(fitPhone));
+fitPhone();
+</script>
+</body>
+</html>
