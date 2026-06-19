@@ -130,14 +130,14 @@ function Grow() { return <div style={{ flex: 1 }} />; }
 function Card({ children, style, onClick }) {
   return (
     <div className={onClick ? 'tap' : undefined} onClick={onClick} style={{
-      background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 24, padding: 18,
+      background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 'var(--radius-card)', padding: 18,
       boxShadow: 'var(--shadow-sm)', ...style,
     }}>{children}</div>
   );
 }
 
 function BigButton({ children, kind = 'primary', style, onClick, disabled }) {
-  const base = { width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 18, padding: '18px 20px', fontFamily: 'inherit', fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', textAlign: 'center' };
+  const base = { width: '100%', boxSizing: 'border-box', border: 'none', borderRadius: 'var(--radius-button)', padding: '18px 20px', fontFamily: 'inherit', fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em', textAlign: 'center' };
   const looks = {
     primary: { background: 'var(--accent)', color: 'var(--accentInk)', boxShadow: '0 4px 14px -4px color-mix(in oklch, var(--accentInk) 32%, transparent)' },
     ghost: { background: 'var(--card)', color: 'var(--muted)', border: '1px solid var(--line)', fontWeight: 500, boxShadow: 'var(--shadow-sm)' },
@@ -149,7 +149,7 @@ function BigButton({ children, kind = 'primary', style, onClick, disabled }) {
 function Chip({ children, active, style, onClick }) {
   return (
     <div className="tap" onClick={onClick} style={{
-      padding: '10px 16px', borderRadius: 999, fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap',
+      padding: '10px 16px', borderRadius: 'var(--radius-chip)', fontSize: 15, letterSpacing: '-0.01em', whiteSpace: 'nowrap',
       border: active ? '1.5px solid var(--accentInk)' : '1px solid var(--line)',
       background: active ? 'var(--accent)' : 'var(--card)', boxShadow: active ? 'none' : 'var(--shadow-sm)',
       color: active ? 'var(--accentInk)' : 'var(--muted)', fontWeight: active ? 600 : 500, ...style,
