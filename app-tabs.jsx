@@ -7,6 +7,7 @@ const fmt = (n) => String(n).padStart(2, '0');
 
 // ── FOCUS TIMER (live countdown) ──────────────────────────────
 function FocusTimer({ task, acc, minutes, tint, variant, onBack, onHome, onDone }) {
+  const meta = themeMeta();
   const total = minutes * 60;
   const [left, setLeft] = useS(total);
   const [running, setRunning] = useS(true);
@@ -24,7 +25,7 @@ function FocusTimer({ task, acc, minutes, tint, variant, onBack, onHome, onDone 
 
   if (variant === 'big') return (
     <ScreenShell {...acc} tint={tint} onBack={onBack} onReset={onHome}>
-      <Pad><Eyebrow>진행 중 · {task.t}</Eyebrow></Pad>
+      <Pad><Eyebrow>{meta.name} 진행 중 · {task.t}</Eyebrow></Pad>
       <Grow />
       <Pad style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 74, fontWeight: 700, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.03em', lineHeight: 1 }}>{time}</div>
@@ -42,7 +43,7 @@ function FocusTimer({ task, acc, minutes, tint, variant, onBack, onHome, onDone 
 
   return (
     <ScreenShell {...acc} tint={tint} onBack={onBack} onReset={onHome}>
-      <Pad><Eyebrow>함께 집중 중 · {task.t}</Eyebrow></Pad>
+      <Pad><Eyebrow>{meta.name} 함께 집중 중 · {task.t}</Eyebrow></Pad>
       <Grow />
       <Pad style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <div style={{ position: 'relative', width: 196, height: 196 }}>
@@ -98,6 +99,12 @@ const fieldStyle = {
 };
 
 function AddTask({ onAdd, onBack }) {
+  const theme = currentThemeKey();
+  const copy = {
+    simple: { eyebrow: '씨앗 추가', title: ['무엇을', '심어둘까요?'], field: '돌볼 일', placeholder: '예: 빨래 개기' },
+    cute: { eyebrow: '퀘스트 추가', title: ['어떤 길로', '떠날까요?'], field: '퀘스트', placeholder: '예: 빨래 개기' },
+    calm: { eyebrow: '주문 추가', title: ['무엇을', '주문해둘까요?'], field: '오늘의 주문', placeholder: '예: 빨래 개기' },
+  }[theme] || { eyebrow: '씨앗 추가', title: ['무엇을', '심어둘까요?'], field: '돌볼 일', placeholder: '예: 빨래 개기' };
   const [title, setTitle] = useS('');
   const [date, setDate] = useS(todayISO());
   const [time, setTime] = useS('');
@@ -109,16 +116,16 @@ function AddTask({ onAdd, onBack }) {
   return (
     <ScreenShell onBack={onBack}>
       <Pad>
-        <Eyebrow>할 일 추가</Eyebrow>
+        <Eyebrow>{copy.eyebrow}</Eyebrow>
         <Spacer h={12} />
-        <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.03em' }}>무엇을<br />미루고 있나요?</div>
+        <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.03em' }}>{copy.title[0]}<br />{copy.title[1]}</div>
       </Pad>
       <Spacer h={22} />
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <Pad style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
           <div>
-            <Eyebrow style={{ marginBottom: 9 }}>할 일</Eyebrow>
-            <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="예: 빨래 개기" style={fieldStyle} />
+            <Eyebrow style={{ marginBottom: 9 }}>{copy.field}</Eyebrow>
+            <input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={copy.placeholder} style={fieldStyle} />
           </div>
 
           <div>
@@ -159,6 +166,13 @@ function AddTask({ onAdd, onBack }) {
 
 // ── 기록 (records) ────────────────────────────────────────────
 function Records({ history, streak, tab, onTab }) {
+  const theme = currentThemeKey();
+  const meta = themeMeta(theme);
+  const copy = {
+    simple: { title: '자라난 순간들', week: '이번 주 정원 기록' },
+    cute: { title: '지나온 경로들', week: '이번 주 탐험 지도' },
+    calm: { title: '머문 시간들', week: '이번 주 카페 노트' },
+  }[theme] || { title: '자라난 순간들', week: '이번 주 정원 기록' };
   const totalMin = history.reduce((a, b) => a + b.minutes, 0);
   const week = history.length; // 데모: 전체를 이번 주로
   const byMethod = { a: 0, b: 0, c: 0 };
@@ -168,9 +182,9 @@ function Records({ history, streak, tab, onTab }) {
   return (
     <ScreenShell pb={0}>
       <Pad>
-        <Eyebrow>기록</Eyebrow>
+        <Eyebrow>{meta.name} 기록</Eyebrow>
         <Spacer h={10} />
-        <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.03em' }}>시작한 순간들</div>
+        <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.03em' }}>{copy.title}</div>
         <Spacer h={16} />
         <div style={{ display: 'flex', gap: 10 }}>
           <Card style={{ flex: 1, textAlign: 'center', padding: '16px 8px' }}>
@@ -194,7 +208,7 @@ function Records({ history, streak, tab, onTab }) {
             <Card style={{ padding: '17px 18px', background: 'var(--mint-soft)', border: '1px solid var(--mint)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
                 <Buddy size={30} mood="wink" />
-                <Eyebrow style={{ color: 'var(--mint-ink)' }}>이번 주 돌아보기</Eyebrow>
+                <Eyebrow style={{ color: 'var(--mint-ink)' }}>{copy.week}</Eyebrow>
               </div>
               <div style={{ fontSize: 15, lineHeight: 1.6, letterSpacing: '-0.01em' }}>
                 이번 주 <b>{week}번</b> 시작했고 <b>{totalMin}분</b> 집중했어요. 제일 자주 기댄 방법은 <b style={{ color: 'var(--mint-ink)' }}>{topName}</b>였네요. 충분히 잘하고 있어요.
@@ -238,23 +252,25 @@ function Records({ history, streak, tab, onTab }) {
 
 // ── 나 (profile) ──────────────────────────────────────────────
 function Profile({ state, onReset, onTheme, tab, onTab }) {
+  const theme = state.theme || 'simple';
+  const meta = themeMeta(theme);
   const settings = [
     ['집중 알림', '하루 1번, 부드럽게'],
-    ['마스코트', '콩이'],
+    ['마스코트', meta.mascot],
   ];
-  const themes = [['simple', '심플'], ['cute', '귀여움'], ['calm', '차분함']];
+  const themes = [['simple', '정원'], ['cute', '탐험'], ['calm', '카페']];
   return (
     <ScreenShell pb={0}>
       <Pad>
-        <Eyebrow>나</Eyebrow>
+        <Eyebrow>{meta.name}</Eyebrow>
       </Pad>
       <Spacer h={14} />
       <Pad style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <Plant seeds={state.seeds} size={104} />
         <Spacer h={6} />
-        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{state.name}님의 {PLANT_STAGES[plantStage(state.seeds)]}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{state.name}님의 {meta.name} 모드</div>
         <Spacer h={4} />
-        <div style={{ fontSize: 13.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>시작할 때마다 씨앗이 자라요. 작게, 꾸준히.</div>
+        <div style={{ fontSize: 13.5, color: 'var(--muted)', whiteSpace: 'nowrap' }}>{meta.mascot}와 함께 작게, 꾸준히.</div>
       </Pad>
       <Spacer h={20} />
       <Pad style={{ display: 'flex', gap: 10 }}>
@@ -305,6 +321,7 @@ function Prototype() {
   const goTab = (tab) => setNav({ tab, screen: 'tab', task: null, method: null });
   const goHome = () => setNav({ tab: 'home', screen: 'tab', task: null, method: null });
 
+  document.documentElement.dataset.theme = state.theme || 'simple';
   useE(() => { document.documentElement.dataset.theme = state.theme || 'simple'; }, [state.theme]);
 
   if (nav.screen === 'tab') {

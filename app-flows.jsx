@@ -12,11 +12,12 @@ function todayDisplayLabel() {
 // ── HOME · 오늘 (tab root) ────────────────────────────────────
 function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
-  const isCalm = theme === 'calm';
-  const line = tasks.length === 0 ? '오늘은 비웠네요. 푹 쉬어도 좋아요.'
-    : isCalm ? '전부 볼 필요 없어요. 하나만 같이 볼게요.'
-    : tasks.length >= 3 ? '많아 보여도 괜찮아요. 딱 하나만요.'
-    : '제일 쉬워 보이는 것부터 해볼까요?';
+  const copy = {
+    simple: { title: ['오늘 뭘', '돌볼까요?'], line: '작은 씨앗 하나만 돌봐도 충분해요.', empty: '오늘 정원은 쉬는 날이에요. 물만 살짝 주고 쉬어요.' },
+    cute: { title: ['어디로', '떠날까요?'], line: '지도가 복잡해도 첫 표식만 찍으면 돼요.', empty: '오늘 지도는 비어 있어요. 쉬어 가도 좋아요.' },
+    calm: { title: ['자리에', '앉아볼까요?'], line: '따뜻하게 시작할 한 잔만 고르면 돼요.', empty: '오늘 카페는 조용해요. 잠깐 쉬어도 괜찮아요.' },
+  }[theme] || themeMeta('simple');
+  const line = tasks.length === 0 ? copy.empty : copy.line;
   const pickRandom = () => { if (tasks.length) onPick(tasks[Math.floor(Math.random() * tasks.length)]); };
   const shown = focusOne && tasks.length ? [tasks[0]] : tasks;
 
@@ -26,12 +27,12 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
         <Eyebrow>{todayDisplayLabel()}</Eyebrow>
         <Spacer h={10} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
-          <div style={{ fontSize: isCalm ? 27 : 29, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{isCalm ? <React.Fragment>하나만<br />보면 돼요</React.Fragment> : <React.Fragment>뭐부터<br />시작해볼까요?</React.Fragment>}</div>
-          <Buddy size={54} mood={isCalm ? 'sleepy' : 'gentle'} />
+          <div style={{ fontSize: theme === 'cute' ? 30 : 28, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{copy.title[0]}<br />{copy.title[1]}</div>
+          <Buddy size={56} mood={theme === 'calm' ? 'sleepy' : theme === 'cute' ? 'cheer' : 'gentle'} />
         </div>
         <Spacer h={12} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: '11px 14px', boxShadow: 'var(--shadow-sm)' }}>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600, letterSpacing: 0.5, color: 'var(--lav-ink)', flexShrink: 0 }}>콩이</span>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600, letterSpacing: 0.5, color: 'var(--lav-ink)', flexShrink: 0 }}>{themeMeta(theme).mascot}</span>
           <span style={{ fontSize: 13.5, color: 'var(--ink)' }}>{line}</span>
         </div>
       </Pad>
@@ -53,18 +54,18 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
             <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginBottom: 2 }}>나머지는 잠깐 숨겼어요. 이거 하나만.</div>
           )}
           {shown.map((x, i) => {
-            const calmSecondary = isCalm && !focusOne && i > 0;
+            const secondary = !focusOne && i > 0;
             return (
               <Card key={x.id} onClick={() => onPick(x)} style={{
                 display: 'flex', alignItems: 'center', gap: 14,
-                padding: isCalm && i === 0 ? '20px 18px' : '17px 18px',
-                background: calmSecondary ? 'color-mix(in oklch, var(--card) 62%, var(--bg))' : 'var(--card)',
-                border: calmSecondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
-                boxShadow: isCalm ? 'none' : undefined,
-                opacity: calmSecondary ? 0.72 : 1,
+                padding: i === 0 ? '20px 18px' : '17px 18px',
+                background: secondary ? 'color-mix(in oklch, var(--surface) 72%, var(--bg))' : 'var(--surface)',
+                border: theme === 'cute' && i === 0 ? '1.5px dashed var(--peach-ink)' : secondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
+                boxShadow: theme === 'calm' ? 'none' : undefined,
+                opacity: secondary ? 0.76 : 1,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: isCalm && i === 0 ? 18 : 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
+                  <div style={{ fontSize: i === 0 ? 18 : 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
                   <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {x.note ? x.note : (
                       <React.Fragment>
@@ -103,6 +104,7 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
 const ENERGY = ['낮음', '보통', '높음'];
 const FEELINGS = ['막막함', '외로움', '지루함', '불안함'];
 function MoodCheck({ task, onConfirm, onSkip, onBack }) {
+  const meta = themeMeta();
   const [energy, setEnergy] = useStateF(null);
   const [feel, setFeel] = useStateF(null);
   return (
@@ -112,7 +114,7 @@ function MoodCheck({ task, onConfirm, onSkip, onBack }) {
         <Spacer h={12} />
         <div style={{ fontSize: 24, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.03em' }}>지금 마음이<br />어때요?</div>
         <Spacer h={7} />
-        <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>딱 맞는 시작법을 콩이가 골라줄게요.</div>
+        <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>딱 맞는 시작법을 {meta.mascot}가 골라줄게요.</div>
       </Pad>
       <Spacer h={26} />
       <Pad>
@@ -130,7 +132,7 @@ function MoodCheck({ task, onConfirm, onSkip, onBack }) {
       </Pad>
       <Grow />
       <Pad>
-        <BigButton kind="primary" disabled={!energy && !feel} onClick={() => onConfirm({ energy, feel })}>콩이 추천 받기</BigButton>
+        <BigButton kind="primary" disabled={!energy && !feel} onClick={() => onConfirm({ energy, feel })}>{meta.mascot} 추천 받기</BigButton>
         <Spacer h={10} />
         <BigButton kind="ghost" onClick={onSkip}>괜찮아요, 바로 고를게요</BigButton>
       </Pad>
@@ -146,16 +148,18 @@ const METHOD_LIST = [
 ];
 
 function MethodChooser({ task, onPick, onBack, recommended }) {
+  const theme = currentThemeKey();
+  const meta = themeMeta(theme);
   const ordered = recommended
     ? [...METHOD_LIST].sort((a, b) => (a.id === recommended ? -1 : b.id === recommended ? 1 : 0))
     : METHOD_LIST;
   return (
     <ScreenShell onBack={onBack}>
       <Pad>
-        <Eyebrow>시작하는 방법</Eyebrow>
+        <Eyebrow>{meta.name} · {meta.action} 방법</Eyebrow>
         <Spacer h={12} />
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.36, letterSpacing: '-0.025em' }}>
-          <span style={{ color: 'var(--muted)' }}>「{task.t}」</span><br />어떻게 시작해볼까요?
+          <span style={{ color: 'var(--muted)' }}>「{task.t}」</span><br />어떻게 {meta.action}할까요?
         </div>
       </Pad>
       <Spacer h={20} />
@@ -163,7 +167,7 @@ function MethodChooser({ task, onPick, onBack, recommended }) {
         <Pad style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--muted)' }}>
             <Buddy size={26} mood="cheer" />
-            <span>지금 마음엔 <b style={{ color: 'var(--ink)' }}>{(METHOD_META[recommended] || {}).name}</b>가 잘 맞을 것 같아요.</span>
+            <span>{meta.mascot} 생각엔 <b style={{ color: 'var(--ink)' }}>{(METHOD_META[recommended] || {}).name}</b>가 잘 맞을 것 같아요.</span>
           </div>
         </Pad>
       )}
@@ -177,7 +181,7 @@ function MethodChooser({ task, onPick, onBack, recommended }) {
               border: reco ? '2px solid ' + m.accentInk : '2px solid transparent',
               boxShadow: '0 6px 18px -8px color-mix(in oklch, ' + m.accentInk + ' 45%, transparent)',
             }}>
-              {reco && <div style={{ position: 'absolute', top: -9, left: 18, background: m.accentInk, color: '#fff', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.3, padding: '3px 9px', borderRadius: 999 }}>콩이 추천</div>}
+              {reco && <div style={{ position: 'absolute', top: -9, left: 18, background: m.accentInk, color: '#fff', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.3, padding: '3px 9px', borderRadius: 999 }}>{meta.mascot} 추천</div>}
               <div style={{ width: 46, height: 46, borderRadius: 15, background: 'var(--card)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.6)' }}>
                 <MethodIcon id={m.id} color={m.accentInk} size={24} />
               </div>
@@ -192,7 +196,7 @@ function MethodChooser({ task, onPick, onBack, recommended }) {
       </Pad>
       <Grow />
       <Pad>
-        <BigButton kind="ghost" onClick={() => onPick(recommended || METHOD_LIST[Math.floor(Math.random() * 3)].id)}>잘 모르겠어요 · 콩이가 골라줘</BigButton>
+        <BigButton kind="ghost" onClick={() => onPick(recommended || METHOD_LIST[Math.floor(Math.random() * 3)].id)}>잘 모르겠어요 · {meta.mascot}가 골라줘</BigButton>
       </Pad>
     </ScreenShell>
   );
@@ -202,6 +206,11 @@ function MethodChooser({ task, onPick, onBack, recommended }) {
 // 모든 단계를 자유롭게 고를 수 있음: 아무 거나 탭 → 집중 → 완료 체크 → 목록 복귀.
 const A_ACC = { accent: 'var(--lav)', accentInk: 'var(--lav-ink)' };
 function FlowA({ task, onBack, onHome, onComplete }) {
+  const flowCopy = {
+    simple: { title: '작은 화단으로 나눴어요.', sub: '하나만 골라 돌보면 돼요.', done: '한 걸음씩 돌보니까 자라났어요.' },
+    cute: { title: '지도를 조각냈어요.', sub: '가장 가까운 표식부터 찍어요.', done: '표식을 찍다 보니 길이 열렸어요.' },
+    calm: { title: '메뉴를 작게 나눴어요.', sub: '한 잔씩 천천히 주문해요.', done: '천천히 해도 충분히 도착했어요.' },
+  }[currentThemeKey()] || { title: '작은 화단으로 나눴어요.', sub: '하나만 골라 돌보면 돼요.', done: '한 걸음씩 돌보니까 자라났어요.' };
   const [step, setStep] = useStateF('split');
   const [done, setDone] = useStateF([]);      // 완료된 단계 인덱스 배열
   const [cur, setCur] = useStateF(0);         // 지금 집중 중인 단계
@@ -224,7 +233,7 @@ function FlowA({ task, onBack, onHome, onComplete }) {
       <Pad>
         <Eyebrow>{task.t}</Eyebrow>
         <Spacer h={10} />
-        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>이만큼만 쪼갰어요.<br />하나만 골라 시작해요.</div>
+        <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>{flowCopy.title}<br />{flowCopy.sub}</div>
         <Spacer h={7} />
         <div style={{ fontSize: 13.5, color: 'var(--muted)' }}>꼭 순서대로 안 해도 돼요. 제일 쉬운 것부터.</div>
       </Pad>
@@ -292,7 +301,7 @@ function FlowA({ task, onBack, onHome, onComplete }) {
         <Spacer h={20} />
         <div style={{ fontSize: 25, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>{allDone ? `${task.t}, 끝까지 해냈어요!` : `${done.length}단계나 해냈어요!`}</div>
         <Spacer h={10} />
-        <div style={{ fontSize: 15, color: 'var(--muted)' }}>한 걸음씩 쪼개니까 되네요. 멋져요.</div>
+        <div style={{ fontSize: 15, color: 'var(--muted)' }}>{flowCopy.done}</div>
       </Pad>
       <Grow />
       <Pad style={{ display: 'flex', gap: 10 }}>
@@ -308,6 +317,11 @@ const B_ACC = { accent: 'var(--mint)', accentInk: 'var(--mint-ink)' };
 const B_DURS = ['10분', '25분', '45분'];
 const B_MIN = [10, 25, 45];
 function FlowB({ task, onBack, onHome, onComplete }) {
+  const flowCopy = {
+    simple: { ask: '같이 물 주듯 시작해볼까요?', sub: '혼자 하기 싫은 일도 함께 돌보면 쉬워져요.', session: '정원 같이 돌보기' },
+    cute: { ask: '같이 탐험을 시작할까요?', sub: '혼자 가기 애매한 길은 나란히 걸으면 돼요.', session: '동행 탐험 세션' },
+    calm: { ask: '같은 테이블에 앉아볼까요?', sub: '조용히 옆자리를 지켜줄게요.', session: '카페 집중 자리' },
+  }[currentThemeKey()] || { ask: '같이 물 주듯 시작해볼까요?', sub: '혼자 하기 싫은 일도 함께 돌보면 쉬워져요.', session: '정원 같이 돌보기' };
   const [step, setStep] = useStateF('propose');
   const [dur, setDur] = useStateF(1);
   const [together] = useStateF(() => 1180 + Math.floor(Math.random() * 160));
@@ -320,9 +334,9 @@ function FlowB({ task, onBack, onHome, onComplete }) {
       <Pad style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
         <Buddy size={104} mood="gentle" />
         <Spacer h={22} />
-        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 20, borderBottomLeftRadius: 6, padding: '16px 20px', fontSize: 18, fontWeight: 600, lineHeight: 1.4, letterSpacing: '-0.015em', boxShadow: 'var(--shadow-sm)' }}>지금 같이 시작해볼까요?</div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 20, borderBottomLeftRadius: 6, padding: '16px 20px', fontSize: 18, fontWeight: 600, lineHeight: 1.4, letterSpacing: '-0.015em', boxShadow: 'var(--shadow-sm)' }}>{flowCopy.ask}</div>
         <Spacer h={16} />
-        <div style={{ fontSize: 14, color: 'var(--muted)' }}>혼자 하기 싫은 일, 옆에서 같이 있어줄게요.</div>
+        <div style={{ fontSize: 14, color: 'var(--muted)' }}>{flowCopy.sub}</div>
         <Spacer h={10} />
         <Card style={{ width: '100%', boxSizing: 'border-box', padding: '14px 18px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 10, height: 10, borderRadius: 999, background: 'var(--accentInk)' }} />
@@ -361,7 +375,7 @@ function FlowB({ task, onBack, onHome, onComplete }) {
   if (step === 'prepare') return (
     <ScreenShell {...B_ACC} onBack={() => setStep('propose')} onReset={onHome}>
       <Pad>
-        <Eyebrow>함께 집중 세션</Eyebrow>
+        <Eyebrow>{flowCopy.session}</Eyebrow>
         <Spacer h={10} />
         <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>얼마나 같이<br />있을까요?</div>
       </Pad>
@@ -415,11 +429,16 @@ function FlowB({ task, onBack, onHome, onComplete }) {
 // ── FLOW C · 일단 5분 ─────────────────────────────────────────
 const C_ACC = { accent: 'var(--peach)', accentInk: 'var(--peach-ink)' };
 function FlowC({ task, onBack, onHome, onComplete }) {
+  const flowCopy = {
+    simple: { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] },
+    cute: { title: '첫 발자국 · ', button: '5분만 출발하기', reward: ['첫 발자국을 찍었더니', '길이 보였어요!'] },
+    calm: { title: '첫 한 모금 · ', button: '5분만 앉아보기', reward: ['잠깐 앉았더니', '여기까지 왔어요!'] },
+  }[currentThemeKey()] || { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] };
   const [step, setStep] = useStateF('start');
 
   if (step === 'start') return (
     <ScreenShell {...C_ACC} onBack={onBack} onReset={onHome}>
-      <Pad><Eyebrow>일단 5분 · {task.t}</Eyebrow></Pad>
+      <Pad><Eyebrow>{flowCopy.title}{task.t}</Eyebrow></Pad>
       <Grow />
       <Pad style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 15, color: 'var(--muted)' }}>지금 할 건 딱 하나</div>
@@ -430,7 +449,7 @@ function FlowC({ task, onBack, onHome, onComplete }) {
       </Pad>
       <Grow />
       <Pad>
-        <BigButton kind="primary" onClick={() => setStep('timer')} style={{ padding: '24px 20px', fontSize: 22, borderRadius: 22 }}>일단 5분만 해보기</BigButton>
+        <BigButton kind="primary" onClick={() => setStep('timer')} style={{ padding: '24px 20px', fontSize: 22, borderRadius: 22 }}>{flowCopy.button}</BigButton>
         <Spacer h={12} />
         <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--muted)' }}>5분 뒤에 그만둬도 완전 괜찮아요.</div>
       </Pad>
@@ -449,7 +468,7 @@ function FlowC({ task, onBack, onHome, onComplete }) {
           <svg width="42" height="42" viewBox="0 0 42 42" fill="none"><path d="M9 22l8 8 16-18" stroke="var(--accentInk)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
         <Spacer h={22} />
-        <div style={{ fontSize: 25, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>일단 시작했더니<br />여기까지 왔어요!</div>
+        <div style={{ fontSize: 25, fontWeight: 700, lineHeight: 1.3, letterSpacing: '-0.025em' }}>{flowCopy.reward[0]}<br />{flowCopy.reward[1]}</div>
         <Spacer h={12} />
         <div style={{ fontSize: 15, color: 'var(--muted)' }}>시작의 힘이에요. 멋져요.</div>
       </Pad>

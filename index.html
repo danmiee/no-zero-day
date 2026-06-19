@@ -10,71 +10,94 @@
 <link href="https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: oklch(0.982 0.006 250);
-    --card: #ffffff;
-    --ink: oklch(0.285 0.018 258);
-    --muted: oklch(0.52 0.018 258);
-    --faint: oklch(0.69 0.015 258);
-    --line: oklch(0.902 0.009 258);
+    --bg: oklch(0.962 0.032 138);
+    --screen-bg: linear-gradient(180deg, oklch(0.984 0.022 132) 0%, oklch(0.95 0.035 145) 100%);
+    --card: oklch(0.997 0.006 120);
+    --surface: color-mix(in oklch, var(--card) 88%, var(--mint-soft));
+    --ink: oklch(0.275 0.04 145);
+    --muted: oklch(0.47 0.04 145);
+    --faint: oklch(0.64 0.036 145);
+    --line: oklch(0.86 0.032 140);
 
-    --lav: oklch(0.89 0.045 284);
-    --lav-ink: oklch(0.44 0.09 284);
-    --mint: oklch(0.91 0.046 168);
-    --mint-ink: oklch(0.43 0.075 168);
-    --mint-soft: oklch(0.962 0.018 168);
-    --peach: oklch(0.92 0.052 66);
-    --peach-ink: oklch(0.49 0.095 60);
-    --peach-soft: oklch(0.966 0.018 66);
-    --sky: oklch(0.9 0.04 235);
-    --sky-ink: oklch(0.46 0.08 240);
+    --lav: oklch(0.9 0.058 126);
+    --lav-ink: oklch(0.38 0.09 132);
+    --mint: oklch(0.88 0.08 153);
+    --mint-ink: oklch(0.34 0.09 154);
+    --mint-soft: oklch(0.94 0.04 146);
+    --peach: oklch(0.91 0.07 83);
+    --peach-ink: oklch(0.45 0.095 80);
+    --peach-soft: oklch(0.965 0.035 92);
+    --sky: oklch(0.9 0.045 190);
+    --sky-ink: oklch(0.4 0.08 185);
+    --mascot: oklch(0.86 0.09 142);
+    --mascot-ink: oklch(0.31 0.095 145);
+    --mascot-accent: oklch(0.93 0.08 88);
 
     --ui: "Pretendard", "Pretendard Variable", -apple-system, system-ui, sans-serif;
     --mono: "Spline Sans Mono", ui-monospace, monospace;
     --radius-card: 18px;
     --radius-button: 14px;
     --radius-chip: 12px;
-    --shadow-sm: 0 1px 2px rgba(23,31,46,0.05), 0 8px 22px rgba(23,31,46,0.055);
-    --shadow-md: 0 2px 5px rgba(23,31,46,0.06), 0 18px 40px rgba(23,31,46,0.09);
+    --shadow-sm: 0 1px 2px rgba(35,76,47,0.06), 0 9px 24px rgba(35,76,47,0.07);
+    --shadow-md: 0 2px 5px rgba(35,76,47,0.07), 0 18px 44px rgba(35,76,47,0.1);
   }
-  /* 귀여움 — candy pastels, warm pink base */
+  /* 탐험 — field notes, map paper, lively route markers */
   html[data-theme="cute"] {
-    --bg: oklch(0.985 0.014 350);
-    --card: #fffdfe;
-    --ink: oklch(0.36 0.05 350);
-    --muted: oklch(0.6 0.04 350);
-    --faint: oklch(0.76 0.03 348);
-    --line: oklch(0.92 0.025 348);
-    --lav: oklch(0.9 0.075 330);
-    --lav-ink: oklch(0.56 0.17 332);
-    --mint: oklch(0.91 0.085 178);
-    --mint-ink: oklch(0.56 0.13 180);
-    --mint-soft: oklch(0.965 0.035 178);
-    --peach: oklch(0.9 0.085 38);
-    --peach-ink: oklch(0.62 0.17 34);
-    --peach-soft: oklch(0.97 0.03 38);
-    --radius-card: 24px;
-    --radius-button: 18px;
-    --radius-chip: 999px;
+    --bg: oklch(0.955 0.026 82);
+    --screen-bg: linear-gradient(180deg, oklch(0.985 0.035 90) 0%, oklch(0.93 0.045 74) 100%);
+    --card: oklch(0.992 0.022 87);
+    --surface: color-mix(in oklch, var(--card) 88%, var(--sky));
+    --ink: oklch(0.29 0.045 55);
+    --muted: oklch(0.48 0.047 62);
+    --faint: oklch(0.65 0.045 70);
+    --line: oklch(0.83 0.045 78);
+    --lav: oklch(0.88 0.08 48);
+    --lav-ink: oklch(0.42 0.115 42);
+    --mint: oklch(0.86 0.07 160);
+    --mint-ink: oklch(0.36 0.09 168);
+    --mint-soft: oklch(0.945 0.035 158);
+    --peach: oklch(0.86 0.095 65);
+    --peach-ink: oklch(0.43 0.12 52);
+    --peach-soft: oklch(0.95 0.04 70);
+    --sky: oklch(0.88 0.06 235);
+    --sky-ink: oklch(0.38 0.09 235);
+    --mascot: oklch(0.85 0.105 64);
+    --mascot-ink: oklch(0.34 0.095 48);
+    --mascot-accent: oklch(0.83 0.105 235);
+    --radius-card: 10px;
+    --radius-button: 12px;
+    --radius-chip: 10px;
+    --shadow-sm: 0 1px 1px rgba(86,58,27,0.07), 0 10px 26px rgba(86,58,27,0.08);
+    --shadow-md: 0 3px 5px rgba(86,58,27,0.08), 0 20px 42px rgba(86,58,27,0.12);
   }
-  /* 차분함 — desaturated, cool & quiet */
+  /* 카페 — warm counter, espresso lines, quiet focus */
   html[data-theme="calm"] {
-    --bg: oklch(0.965 0.008 240);
-    --card: #fbfcfd;
-    --ink: oklch(0.34 0.018 250);
-    --muted: oklch(0.55 0.014 250);
-    --faint: oklch(0.7 0.011 250);
-    --line: oklch(0.9 0.008 250);
-    --lav: oklch(0.88 0.032 268);
-    --lav-ink: oklch(0.5 0.06 268);
-    --mint: oklch(0.88 0.03 178);
-    --mint-ink: oklch(0.48 0.05 186);
-    --mint-soft: oklch(0.95 0.016 180);
-    --peach: oklch(0.89 0.034 72);
-    --peach-ink: oklch(0.54 0.07 64);
-    --peach-soft: oklch(0.955 0.018 72);
-    --radius-card: 22px;
-    --radius-button: 18px;
+    --bg: oklch(0.948 0.022 68);
+    --screen-bg: linear-gradient(180deg, oklch(0.982 0.026 78) 0%, oklch(0.925 0.026 58) 100%);
+    --card: oklch(0.99 0.018 75);
+    --surface: color-mix(in oklch, var(--card) 86%, var(--peach-soft));
+    --ink: oklch(0.26 0.035 45);
+    --muted: oklch(0.46 0.038 48);
+    --faint: oklch(0.63 0.035 55);
+    --line: oklch(0.82 0.035 64);
+    --lav: oklch(0.87 0.055 36);
+    --lav-ink: oklch(0.38 0.085 34);
+    --mint: oklch(0.86 0.045 142);
+    --mint-ink: oklch(0.34 0.065 142);
+    --mint-soft: oklch(0.945 0.025 130);
+    --peach: oklch(0.88 0.07 58);
+    --peach-ink: oklch(0.39 0.085 46);
+    --peach-soft: oklch(0.948 0.032 62);
+    --sky: oklch(0.88 0.035 212);
+    --sky-ink: oklch(0.36 0.065 215);
+    --mascot: oklch(0.83 0.06 58);
+    --mascot-ink: oklch(0.32 0.065 45);
+    --mascot-accent: oklch(0.94 0.03 83);
+    --radius-card: 8px;
+    --radius-button: 10px;
     --radius-chip: 999px;
+    --shadow-sm: 0 1px 2px rgba(70,45,26,0.08), 0 8px 20px rgba(70,45,26,0.08);
+    --shadow-md: 0 3px 6px rgba(70,45,26,0.09), 0 18px 38px rgba(70,45,26,0.13);
   }
   * { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   html, body { margin: 0; height: 100%; background: var(--bg); font-family: var(--ui); transition: background .35s ease; }
