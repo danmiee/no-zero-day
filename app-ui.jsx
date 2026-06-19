@@ -79,7 +79,7 @@ function recommendMethod(mood) {
   return 'c';
 }
 const RECO_WHY = {
-  a: '마음이 복잡할 땏, 잘게 쪼개면 가볜워져요',
+  a: '마음이 복잡할 때, 잘게 쪼개면 가벼워져요',
   b: '혼자가 아니라는 게 제일 큰 힘이 돼요',
   c: '지금은 딱 5분이면 충분해요',
 };

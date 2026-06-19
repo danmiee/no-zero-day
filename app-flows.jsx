@@ -3,6 +3,12 @@
 
 const { useState: useStateF } = React;
 
+const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+function todayDisplayLabel() {
+  const d = new Date();
+  return `오늘 · ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
+}
+
 // ── HOME · 오늘 (tab root) ────────────────────────────────────
 function Home({ tasks, onPick, onAdd, onRemove, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
@@ -15,7 +21,7 @@ function Home({ tasks, onPick, onAdd, onRemove, tab, onTab }) {
   return (
     <ScreenShell pb={0}>
       <Pad>
-        <Eyebrow>오늘 · 6월 19일</Eyebrow>
+        <Eyebrow>{todayDisplayLabel()}</Eyebrow>
         <Spacer h={10} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ fontSize: 29, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>뭐부터<br />시작해볼까요?</div>
