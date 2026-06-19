@@ -429,6 +429,7 @@ function FlowB({ task, onBack, onHome, onComplete }) {
 // ── FLOW C · 일단 5분 ─────────────────────────────────────────
 const C_ACC = { accent: 'var(--peach)', accentInk: 'var(--peach-ink)' };
 function FlowC({ task, onBack, onHome, onComplete }) {
+  const progress = progressMeta(currentThemeKey());
   const flowCopy = {
     garden: { title: '일단 5분 · ', button: '5분만 돌보기', reward: ['일단 손댔더니', '새싹이 올라왔어요!'] },
     exploration: { title: '첫 발자국 · ', button: '5분만 출발하기', reward: ['첫 발자국을 찍었더니', '길이 보였어요!'] },
@@ -480,7 +481,7 @@ function FlowC({ task, onBack, onHome, onComplete }) {
         </Card>
         <Card style={{ flex: 1, textAlign: 'center', padding: '18px 8px' }}>
           <div style={{ fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--accentInk)' }}>+1</div>
-          <Eyebrow style={{ marginTop: 5 }}>모은 씨앗</Eyebrow>
+          <Eyebrow style={{ marginTop: 5 }}>{progress.unitLabel}</Eyebrow>
         </Card>
       </Pad>
       <Grow />

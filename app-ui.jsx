@@ -233,10 +233,36 @@ function Buddy({ size = 96, mood = 'smile', pop }) {
   );
 }
 
-// 씨앗 → 식물 성장 (모은 씨앗 수에 따라)
+// 테마별 진행 단계 (완료 수에 따라)
 const PLANT_STAGES = ['씨앗', '새싹', '잎 두 장', '큰 잎', '꽃봉오리', '활짝 핀 꽃'];
+const PROGRESS_META = {
+  garden: {
+    unitLabel: '모은 씨앗',
+    unit: '개',
+    stages: PLANT_STAGES,
+    line: '작은 씨앗이 오늘의 정원으로 자라고 있어요.',
+  },
+  exploration: {
+    unitLabel: '찾은 표식',
+    unit: '개',
+    stages: ['빈 지도', '첫 발자국', '갈림길 표시', '경로 연결', '목적지 발견', '완성된 지도'],
+    line: '표식을 찍을수록 지도가 넓어지고 있어요.',
+  },
+  cafe: {
+    unitLabel: '받은 스탬프',
+    unit: '개',
+    stages: ['빈 메뉴판', '기본 메뉴', '추천 메뉴', '따뜻한 한 잔', '스페셜 메뉴', '완성된 보드'],
+    line: '방문이 쌓일수록 메뉴판이 풍성해지고 있어요.',
+  },
+};
 function plantStage(seeds) {
   return seeds <= 0 ? 0 : seeds <= 2 ? 1 : seeds <= 5 ? 2 : seeds <= 9 ? 3 : seeds <= 14 ? 4 : 5;
+}
+function progressMeta(theme, seeds = 0) {
+  const key = normalizeThemeKey(theme);
+  const meta = PROGRESS_META[key] || PROGRESS_META.garden;
+  const stage = plantStage(seeds);
+  return { ...meta, stage, stageName: meta.stages[stage] };
 }
 function Plant({ seeds = 0, size = 120 }) {
   const stage = plantStage(seeds);
@@ -284,7 +310,9 @@ function MapProgress({ seeds = 0, size = 120 }) {
     <svg viewBox="0 0 120 120" width={size} height={size}>
       <path d="M16 24 L46 14 L76 24 L104 14 L104 94 L76 106 L46 96 L16 106 Z" fill={paper} stroke={ink} strokeWidth="3" strokeLinejoin="round" />
       <path d="M46 14 V96 M76 24 V106" fill="none" stroke="var(--line)" strokeWidth="2" />
-      <path d="M18 54 L46 45 L76 56 L102 46" fill="none" stroke={fold} strokeWidth="14" strokeLinecap="round" opacity="0.9" />
+      {stage >= 1 && <path d="M18 54 L46 45" fill="none" stroke={fold} strokeWidth="14" strokeLinecap="round" opacity="0.9" />}
+      {stage >= 2 && <path d="M46 45 L76 56" fill="none" stroke={fold} strokeWidth="14" strokeLinecap="round" opacity="0.9" />}
+      {stage >= 3 && <path d="M76 56 L102 46" fill="none" stroke={fold} strokeWidth="14" strokeLinecap="round" opacity="0.9" />}
       {stage >= 1 && <path d="M28 84 C38 72 43 68 51 67" fill="none" stroke={route} strokeWidth="4" strokeLinecap="round" strokeDasharray="1 7" />}
       {stage >= 2 && <path d="M51 67 C62 64 64 49 75 50" fill="none" stroke={route} strokeWidth="4" strokeLinecap="round" strokeDasharray="1 7" />}
       {stage >= 3 && <path d="M75 50 C86 51 88 35 98 30" fill="none" stroke={route} strokeWidth="4" strokeLinecap="round" strokeDasharray="1 7" />}
@@ -307,7 +335,8 @@ function CafeMenuProgress({ seeds = 0, size = 120 }) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size}>
       <rect x="22" y="15" width="76" height="92" rx="10" fill={board} stroke={ink} strokeWidth="3" />
-      <path d="M34 33 H86 M34 47 H68" stroke={ink} strokeWidth="3" strokeLinecap="round" opacity="0.78" />
+      <path d="M34 33 H86" stroke={ink} strokeWidth="3" strokeLinecap="round" opacity="0.78" />
+      {stage >= 1 && <path d="M34 47 H68" stroke={ink} strokeWidth="3" strokeLinecap="round" opacity="0.72" />}
       {stage >= 1 && <g>
         <rect x="34" y="61" width="52" height="10" rx="5" fill="var(--peach-soft)" stroke="var(--peach-ink)" strokeWidth="1.8" />
         <path d="M41 66 H61" stroke="var(--peach-ink)" strokeWidth="2" strokeLinecap="round" />
@@ -395,6 +424,6 @@ Object.assign(window, {
   useStore, METHOD_META, THEME_META, GENERIC_STEPS, uid, MethodIcon, recommendMethod, RECO_WHY,
   normalizeThemeKey,
   currentThemeKey, themeMeta,
-  plantStage, PLANT_STAGES, Plant, MapProgress, CafeMenuProgress, ThemeProgressVisual,
+  plantStage, progressMeta, PLANT_STAGES, PROGRESS_META, Plant, MapProgress, CafeMenuProgress, ThemeProgressVisual,
   ScreenShell, Eyebrow, Pad, Spacer, Grow, Card, BigButton, Chip, Chevron, Check, Buddy, TabBar,
 });
