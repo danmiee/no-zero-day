@@ -3,14 +3,8 @@
 
 const { useState: useStateF } = React;
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-function todayDisplayLabel() {
-  const d = new Date();
-  return `오늘 · ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAYS[d.getDay()]})`;
-}
-
 // ── HOME · 오늘 (tab root) ────────────────────────────────────
-function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
+function Home({ tasks, theme, onPick, onAdd, onEdit, onRemove, tab, onTab }) {
   const [focusOne, setFocusOne] = useStateF(false);
   const copy = {
     garden: { title: ['오늘 뭘', '돌볼까요?'], line: '작은 씨앗 하나만 돌봐도 충분해요.', empty: '오늘 정원은 쉬는 날이에요. 물만 살짝 주고 쉬어요.' },
@@ -24,7 +18,7 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
   return (
     <ScreenShell pb={0}>
       <Pad>
-        <Eyebrow>{todayDisplayLabel()}</Eyebrow>
+        <div style={{ height: 14 }} />
         <Spacer h={10} />
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 }}>
           <div style={{ fontSize: theme === 'exploration' ? 30 : 28, fontWeight: 700, lineHeight: 1.22, letterSpacing: '-0.032em' }}>{copy.title[0]}<br />{copy.title[1]}</div>
@@ -54,18 +48,16 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
             <div style={{ fontSize: 12.5, color: 'var(--muted)', textAlign: 'center', marginBottom: 2 }}>나머지는 잠깐 숨겼어요. 이거 하나만.</div>
           )}
           {shown.map((x, i) => {
-            const secondary = !focusOne && i > 0;
             return (
               <Card key={x.id} onClick={() => onPick(x)} style={{
                 display: 'flex', alignItems: 'center', gap: 14,
-                padding: i === 0 ? '20px 18px' : '17px 18px',
-                background: secondary ? 'color-mix(in oklch, var(--surface) 72%, var(--bg))' : 'var(--surface)',
-                border: theme === 'exploration' && i === 0 ? '1.5px dashed var(--peach-ink)' : secondary ? '1px solid color-mix(in oklch, var(--line) 70%, transparent)' : '1px solid var(--line)',
+                padding: '17px 18px',
+                background: 'var(--surface)',
+                border: '1px solid var(--line)',
                 boxShadow: theme === 'cafe' ? 'none' : undefined,
-                opacity: secondary ? 0.76 : 1,
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: i === 0 ? 18 : 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
+                  <div style={{ fontSize: 16.5, fontWeight: 600, letterSpacing: '-0.015em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.t}</div>
                   <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                     {x.note ? x.note : (
                       <React.Fragment>
@@ -76,10 +68,12 @@ function Home({ tasks, theme, onPick, onAdd, onRemove, tab, onTab }) {
                     )}
                   </div>
                 </div>
+                <div className="tap" onClick={(e) => { e.stopPropagation(); onEdit(x); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 10.7l.6-2.4 5.9-5.9a1.4 1.4 0 0 1 2 2L5.6 10.3 3 10.7z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /><path d="M8.5 3.4l2.1 2.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
+                </div>
                 <div className="tap" onClick={(e) => { e.stopPropagation(); onRemove(x.id); }} style={{ width: 30, height: 30, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--faint)', flexShrink: 0 }}>
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 2l9 9M11 2l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
                 </div>
-                <Chevron />
               </Card>
             );
           })}
@@ -143,7 +137,7 @@ function MoodCheck({ task, onConfirm, onSkip, onBack }) {
 // ── METHOD · 시작 방법 ────────────────────────────────────────
 const METHOD_LIST = [
   { id: 'a', name: '쪼개기', desc: '잘게 나눠 딱 한 걸음부터', accent: 'var(--lav)', accentInk: 'var(--lav-ink)' },
-  { id: 'b', name: '같이하기', desc: '마스코트가 옆에서 함께 집중', accent: 'var(--mint)', accentInk: 'var(--mint-ink)' },
+  { id: 'b', name: '같이하기', desc: '콩이가 옆에서 함께 집중', accent: 'var(--mint)', accentInk: 'var(--mint-ink)' },
   { id: 'c', name: '일단 5분', desc: '딱 5분만, 부담 없이 시작', accent: 'var(--peach)', accentInk: 'var(--peach-ink)' },
 ];
 

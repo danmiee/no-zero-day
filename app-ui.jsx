@@ -18,12 +18,24 @@ const GENERIC_STEPS = [
   '한 단계만 더 해보기',
 ];
 
+const STORE_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const storeFmt = (n) => String(n).padStart(2, '0');
+function storeISOAddDays(n = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + storeFmt(d.getMonth() + 1) + '-' + storeFmt(d.getDate());
+}
+function storeWhenLabel(iso, prefix = '오늘') {
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${prefix} (${STORE_WEEKDAYS[new Date(y, m - 1, d).getDay()]})`;
+}
+
 const SEED_TASKS = [
-  { id: 't1', t: '방 정리하기', when: '오늘', time: null, note: '3일째 미루는 중', tiny: '바닥의 옷 1개만 줍기',
+  { id: 't1', t: '방 정리하기', when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: null, note: '3일째 미루는 중', tiny: '바닥의 옷 1개만 줍기',
     steps: ['바닥의 옷 3개만 줍기', '쓰레기 한 줌 버리기', '책상 위 컵 치우기', '이불 펴기', '창문 열기'] },
-  { id: 't2', t: '이메일 답장 보내기', when: '오늘', time: '오후 2:00', note: '2일째 미루는 중', tiny: '받은편지함만 열어보기',
+  { id: 't2', t: '이메일 답장 보내기', when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: '오후 2:00', timeValue: '14:00', note: '2일째 미루는 중', tiny: '받은편지함만 열어보기',
     steps: ['받은편지함 열기', '답장할 메일 1개만 고르기', '인사말 한 줄 쓰기', '핵심 한 문장 쓰기', '보내기 누르기'] },
-  { id: 't3', t: '보고서 초안 쓰기', when: '오늘', time: '오후 6:00', note: '오늘까지', tiny: '빈 문서만 열기',
+  { id: 't3', t: '보고서 초안 쓰기', when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: '오후 6:00', timeValue: '18:00', note: '오늘까지', tiny: '빈 문서만 열기',
     steps: ['빈 문서 열기', '제목만 적기', '목차 3줄 쓰기', '첫 문단 아무거나 쓰기', '한 단락 더 쓰기'] },
 ];
 
@@ -38,7 +50,13 @@ function loadStore() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...parsed, theme: normalizeThemeKey(parsed.theme) };
+      return {
+        ...parsed,
+        theme: normalizeThemeKey(parsed.theme),
+        tasks: (parsed.tasks || []).map((task) => task.dateISO
+          ? { ...task, when: task.when && task.when.includes('(') ? task.when : storeWhenLabel(task.dateISO, task.when || '오늘') }
+          : task),
+      };
     }
   } catch (e) {}
   return { tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: 'garden', mood: null };
@@ -55,12 +73,18 @@ function useStore() {
 
   const addTask = (task) => {
     const full = {
-      id: uid(), t: task.t.trim(), when: task.when, time: task.time, note: null, estimate: task.estimate || null,
+      id: uid(), t: task.t.trim(), when: task.when, dateISO: task.dateISO || null, time: task.time, timeValue: task.timeValue || '', note: null, estimate: task.estimate || null,
       tiny: '딱 10초만 쳐다보기', steps: GENERIC_STEPS,
     };
     setState((s) => ({ ...s, tasks: [full, ...s.tasks] }));
     return full;
   };
+  const updateTask = (id, patch) => setState((s) => ({
+    ...s,
+    tasks: s.tasks.map((task) => task.id === id
+      ? { ...task, ...patch, t: (patch.t || task.t).trim(), note: null }
+      : task),
+  }));
   const removeTask = (id) => setState((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }));
   const completeSession = (title, method, methodLabel, minutes, estimate) => {
     setState((s) => ({
@@ -73,7 +97,7 @@ function useStore() {
   const setTheme = (theme) => setState((s) => ({ ...s, theme: normalizeThemeKey(theme) }));
   const setMood = (mood) => setState((s) => ({ ...s, mood }));
 
-  return { state, addTask, removeTask, completeSession, reset, setTheme, setMood };
+  return { state, addTask, updateTask, removeTask, completeSession, reset, setTheme, setMood };
 }
 
 // 기분·에너지 → 추천 방식
@@ -99,8 +123,8 @@ const METHOD_META = {
 
 const THEME_META = {
   garden: { name: '정원', mascot: '새싹 콩이', home: '오늘의 정원', action: '돌보기' },
-  exploration: { name: '탐험', mascot: '탐험 콩이', home: '오늘의 지도', action: '출발' },
-  cafe: { name: '카페', mascot: '카페 콩이', home: '오늘의 자리', action: '착석' },
+  exploration: { name: '탐험', mascot: '루트 콩이', home: '오늘의 지도', action: '출발' },
+  cafe: { name: '카페', mascot: '모카 콩이', home: '오늘의 자리', action: '착석' },
 };
 function currentThemeKey() {
   return normalizeThemeKey(document.documentElement.dataset.theme);
@@ -362,15 +386,21 @@ function CafeMenuProgress({ seeds = 0, size = 120 }) {
 
 function ThemeProgressVisual({ theme, seeds = 0, size = 120 }) {
   const key = normalizeThemeKey(theme);
-  if (key === 'exploration') return <MapProgress seeds={seeds} size={size} />;
-  if (key === 'cafe') return <CafeMenuProgress seeds={seeds} size={size} />;
-  return <Plant seeds={seeds} size={size} />;
+  return (
+    <div style={{ width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      {key === 'exploration'
+        ? <MapProgress seeds={seeds} size={size} />
+        : key === 'cafe'
+          ? <CafeMenuProgress seeds={seeds} size={size} />
+          : <Plant seeds={seeds} size={Math.round(size * 0.84)} />}
+    </div>
+  );
 }
 
 const TAB_ICONS = {
-  오늘: (a) => <path d="M4 9.5L11 4l7 5.5V18a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1V9.5z" fill={a ? 'var(--lav-ink)' : 'none'} stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinejoin="round" />,
+  홈: (a) => <path d="M4 9.5L11 4l7 5.5V18a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1V9.5z" fill={a ? 'var(--lav-ink)' : 'none'} stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinejoin="round" />,
   기록: (a) => <g stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinecap="round"><path d="M6 5h10M6 11h10M6 17h6" /></g>,
-  나: (a) => <g fill="none" stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6"><circle cx="11" cy="8" r="3.2" /><path d="M5 18c0-3.3 2.7-5 6-5s6 1.7 6 5" strokeLinecap="round" /></g>,
+  마이: (a) => <g fill="none" stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6"><circle cx="11" cy="8" r="3.2" /><path d="M5 18c0-3.3 2.7-5 6-5s6 1.7 6 5" strokeLinecap="round" /></g>,
 };
 
 // ── METHOD ICONS ──────────────────────────────────────────────
@@ -404,7 +434,7 @@ function MethodIcon({ id, color, size = 22 }) {
 }
 
 function TabBar({ active, onTab }) {
-  const items = [['오늘', 'home'], ['기록', 'records'], ['나', 'me']];
+  const items = [['홈', 'home'], ['기록', 'records'], ['마이', 'me']];
   return (
     <div style={{ display: 'flex', gap: 8, padding: '14px 24px 8px', borderTop: '1px solid var(--line)', background: 'var(--bg)', boxShadow: '0 -7px 20px -12px rgba(30,28,40,0.16)', position: 'sticky', bottom: 0, zIndex: 5, flexShrink: 0 }}>
       {items.map(([label, key]) => {
