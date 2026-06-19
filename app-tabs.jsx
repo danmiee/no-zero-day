@@ -114,9 +114,16 @@ function AddTask({ task, onAdd, onBack }) {
   const [date, setDate] = useS(task && task.dateISO ? task.dateISO : todayISO());
   const [time, setTime] = useS(task && task.timeValue ? task.timeValue : '');
   const [est, setEst] = useS(task && task.estimate ? task.estimate : null);
-  const quick = [[whenLabel(todayISO()), todayISO()], [whenLabel(addDaysISO(1)), addDaysISO(1)], [whenLabel(addDaysISO(2)), addDaysISO(2)]];
+  const dateInputRef = useR(null);
+  const quick = [['오늘', todayISO()], ['내일', addDaysISO(1)], ['모레', addDaysISO(2)]];
   const timeQuick = [['안 정함', ''], ['오전 9시', '09:00'], ['오후 2시', '14:00'], ['오후 6시', '18:00']];
   const estQuick = [['5분', 5], ['15분', 15], ['30분', 30], ['1시간', 60]];
+  const openDatePicker = () => {
+    const input = dateInputRef.current;
+    if (!input) return;
+    if (input.showPicker) input.showPicker();
+    else input.click();
+  };
 
   return (
     <ScreenShell onBack={onBack}>
@@ -138,9 +145,14 @@ function AddTask({ task, onAdd, onBack }) {
             <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
               {quick.map(([label, iso]) => <Chip key={label} active={date === iso} onClick={() => setDate(iso)} style={{ flex: 1, textAlign: 'center', padding: '11px 0' }}>{label}</Chip>)}
             </div>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={fieldStyle} />
-            <Spacer h={8} />
-            <div style={{ fontSize: 12.5, color: 'var(--faint)' }}>선택한 날짜 · {whenLabel(date)}</div>
+            <div className="tap" onClick={openDatePicker} style={{ ...fieldStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', cursor: 'pointer' }}>
+              <span>{whenLabel(date)}</span>
+              <svg width="17" height="17" viewBox="0 0 17 17" fill="none" style={{ color: 'var(--ink)', flexShrink: 0 }}>
+                <rect x="3" y="4" width="11" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M5.5 2.8v2.5M11.5 2.8v2.5M3.4 7h10.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input ref={dateInputRef} type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ position: 'absolute', right: 12, bottom: 8, width: 1, height: 1, opacity: 0, pointerEvents: 'none' }} tabIndex="-1" aria-hidden="true" />
+            </div>
           </div>
 
           <div>
