@@ -111,10 +111,13 @@ function themeMeta(key) {
 
 // ── PRIMITIVES ────────────────────────────────────────────────
 function ScreenShell({ accent, accentInk, tint, onBack, onReset, pb, children }) {
+  const safeTop = 'var(--safe-top)';
+  const topPad = (onBack || onReset) ? `calc(${safeTop} + 52px)` : `calc(${safeTop} + 20px)`;
+  const botPad = pb != null ? pb : 24;
   return (
     <div style={{
-      height: '100%', boxSizing: 'border-box',
-      paddingTop: (onBack || onReset) ? 52 : 56, paddingBottom: pb != null ? pb : 24,
+      height: '100dvh', boxSizing: 'border-box',
+      paddingTop: topPad, paddingBottom: botPad,
       display: 'flex', flexDirection: 'column',
       background: tint || 'var(--screen-bg)',
       ['--accent']: accent || 'var(--lav)',
@@ -406,7 +409,7 @@ function MethodIcon({ id, color, size = 22 }) {
 function TabBar({ active, onTab }) {
   const items = [['오늘', 'home'], ['기록', 'records'], ['나', 'me']];
   return (
-    <div style={{ display: 'flex', gap: 8, padding: '14px 24px 8px', borderTop: '1px solid var(--line)', background: 'var(--bg)', boxShadow: '0 -7px 20px -12px rgba(30,28,40,0.16)', position: 'sticky', bottom: 0, zIndex: 5, flexShrink: 0 }}>
+    <div style={{ display: 'flex', gap: 8, padding: '14px 24px', paddingBottom: 'max(8px, var(--safe-bottom))', borderTop: '1px solid var(--line)', background: 'var(--bg)', boxShadow: '0 -7px 20px -12px rgba(30,28,40,0.16)', position: 'sticky', bottom: 0, zIndex: 5, flexShrink: 0 }}>
       {items.map(([label, key]) => {
         const a = active === key;
         return (
