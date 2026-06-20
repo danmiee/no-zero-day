@@ -1,11 +1,11 @@
 const TAB_ICONS = {
-  오늘: (a) => <path d="M4 9.5L11 4l7 5.5V18a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1V9.5z" fill={a ? 'var(--lav-ink)' : 'none'} stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinejoin="round" />,
+  홈:   (a) => <path d="M4 9.5L11 4l7 5.5V18a1 1 0 0 1-1 1h-3v-5H8v5H5a1 1 0 0 1-1-1V9.5z" fill={a ? 'var(--lav-ink)' : 'none'} stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinejoin="round" />,
   기록: (a) => <g stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6" strokeLinecap="round"><path d="M6 5h10M6 11h10M6 17h6" /></g>,
-  나:   (a) => <g fill="none" stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6"><circle cx="11" cy="8" r="3.2" /><path d="M5 18c0-3.3 2.7-5 6-5s6 1.7 6 5" strokeLinecap="round" /></g>,
+  마이: (a) => <g fill="none" stroke={a ? 'var(--lav-ink)' : 'var(--faint)'} strokeWidth="1.6"><circle cx="11" cy="8" r="3.2" /><path d="M5 18c0-3.3 2.7-5 6-5s6 1.7 6 5" strokeLinecap="round" /></g>,
 };
 
 export default function TabBar({ active, onTab }) {
-  const items = [['오늘', 'home'], ['기록', 'records'], ['나', 'me']];
+  const items = [['홈', 'home'], ['기록', 'records'], ['마이', 'me']];
   return (
     <div style={{
       display: 'flex', gap: 8,

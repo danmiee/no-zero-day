@@ -1,4 +1,4 @@
-import { currentThemeKey, themeMeta } from '../lib/theme';
+import { currentThemeKey } from '../lib/theme';
 import { METHOD_META } from '../lib/method';
 import ScreenShell from '../components/ui/ScreenShell';
 import TabBar      from '../components/ui/TabBar';
@@ -9,7 +9,6 @@ import { Eyebrow, Pad, Spacer } from '../components/ui/primitives';
 
 export default function Records({ history, streak, tab, onTab }) {
   const theme = currentThemeKey();
-  const meta  = themeMeta(theme);
   const copy  = {
     garden:      { title: '자라난 순간들',  week: '이번 주 정원 기록' },
     exploration: { title: '지나온 경로들',  week: '이번 주 탐험 지도' },
@@ -26,7 +25,7 @@ export default function Records({ history, streak, tab, onTab }) {
   return (
     <ScreenShell pb={0}>
       <Pad>
-        <Eyebrow>{meta.name} 기록</Eyebrow>
+        <div style={{ height: 14 }} />
         <Spacer h={10} />
         <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.25, letterSpacing: '-0.03em' }}>{copy.title}</div>
         <Spacer h={16} />

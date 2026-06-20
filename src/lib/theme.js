@@ -5,9 +5,9 @@ export function normalizeThemeKey(theme) {
 }
 
 export const THEME_META = {
-  garden:      { name: '정원', mascot: '새싹 콩이', home: '오늘의 정원', action: '돌보기' },
-  exploration: { name: '탐험', mascot: '탐험 콩이', home: '오늘의 지도', action: '출발' },
-  cafe:        { name: '카페', mascot: '카페 콩이', home: '오늘의 자리', action: '착석' },
+  garden:      { name: '정원', mascot: '새싹', home: '오늘의 정원', action: '돌보기' },
+  exploration: { name: '탐험', mascot: '루트', home: '오늘의 지도', action: '출발' },
+  cafe:        { name: '카페', mascot: '모카', home: '오늘의 자리', action: '착석' },
 };
 
 export function currentThemeKey() {

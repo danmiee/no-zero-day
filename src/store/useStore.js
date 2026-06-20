@@ -11,28 +11,44 @@ const GENERIC_STEPS = [
   '한 단계만 더 해보기',
 ];
 
+const storeFmt = (n) => String(n).padStart(2, '0');
+const STORE_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+function storeISOAddDays(n = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + storeFmt(d.getMonth() + 1) + '-' + storeFmt(d.getDate());
+}
+function storeWhenLabel(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const day = STORE_WEEKDAYS[new Date(y, m - 1, d).getDay()];
+  return `${String(y).slice(2)}.${storeFmt(m)}.${storeFmt(d)}.(${day})`;
+}
+
 const SEED_TASKS = [
   {
-    id: 't1', t: '방 정리하기', when: '오늘', time: null,
+    id: 't1', t: '방 정리하기',
+    when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: null,
     note: '3일째 미루는 중', tiny: '바닥의 옷 1개만 줍기',
     steps: ['바닥의 옷 3개만 줍기', '쓰레기 한 줌 버리기', '책상 위 컵 치우기', '이불 펴기', '창문 열기'],
   },
   {
-    id: 't2', t: '이메일 답장 보내기', when: '오늘', time: '오후 2:00',
+    id: 't2', t: '이메일 답장 보내기',
+    when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: '오후 2:00', timeValue: '14:00',
     note: '2일째 미루는 중', tiny: '받은편지함만 열어보기',
     steps: ['받은편지함 열기', '답장할 메일 1개만 고르기', '인사말 한 줄 쓰기', '핵심 한 문장 쓰기', '보내기 누르기'],
   },
   {
-    id: 't3', t: '보고서 초안 쓰기', when: '오늘', time: '오후 6:00',
+    id: 't3', t: '보고서 초안 쓰기',
+    when: storeWhenLabel(storeISOAddDays()), dateISO: storeISOAddDays(), time: '오후 6:00', timeValue: '18:00',
     note: '오늘까지', tiny: '빈 문서만 열기',
     steps: ['빈 문서 열기', '제목만 적기', '목차 3줄 쓰기', '첫 문단 아무거나 쓰기', '한 단락 더 쓰기'],
   },
 ];
 
 const SEED_HISTORY = [
-  { id: 'h1', title: '설거지',        method: 'b', methodLabel: '같이하기', date: '어제',   minutes: 25 },
+  { id: 'h1', title: '설거지',         method: 'b', methodLabel: '같이하기', date: '어제',   minutes: 25 },
   { id: 'h2', title: '운동복 갈아입기', method: 'c', methodLabel: '일단 5분', date: '어제',   minutes: 23 },
-  { id: 'h3', title: '책상 정리',      method: 'a', methodLabel: '쪼개기',   date: '2일 전', minutes: 8  },
+  { id: 'h3', title: '책상 정리',       method: 'a', methodLabel: '쪼개기',   date: '2일 전', minutes: 8  },
 ];
 
 function loadStore() {
@@ -40,7 +56,13 @@ function loadStore() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      return { ...parsed, theme: normalizeThemeKey(parsed.theme) };
+      return {
+        ...parsed,
+        theme: normalizeThemeKey(parsed.theme),
+        tasks: (parsed.tasks || []).map((task) =>
+          task.dateISO ? { ...task, when: storeWhenLabel(task.dateISO) } : task
+        ),
+      };
     }
   } catch (e) {}
   return { tasks: SEED_TASKS, history: SEED_HISTORY, streak: 3, seeds: 5, name: '나', theme: 'garden', mood: null };
@@ -58,13 +80,25 @@ export function useStore() {
 
   const addTask = (task) => {
     const full = {
-      id: uid(), t: task.t.trim(), when: task.when, time: task.time,
+      id: uid(), t: task.t.trim(),
+      when: task.when, dateISO: task.dateISO || null,
+      time: task.time, timeValue: task.timeValue || '',
       note: null, estimate: task.estimate || null,
-      tiny: '딱 10초만 쳐다보기', steps: GENERIC_STEPS,
+      tiny: task.tiny || '딱 10초만 쳐다보기',
+      steps: task.steps && task.steps.length ? task.steps : GENERIC_STEPS,
     };
     setState((s) => ({ ...s, tasks: [full, ...s.tasks] }));
     return full;
   };
+
+  const updateTask = (id, patch) => setState((s) => ({
+    ...s,
+    tasks: s.tasks.map((task) =>
+      task.id === id
+        ? { ...task, ...patch, t: (patch.t || task.t).trim(), note: null }
+        : task
+    ),
+  }));
 
   const removeTask = (id) => setState((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }));
 
@@ -84,5 +118,5 @@ export function useStore() {
   const setTheme = (theme) => setState((s) => ({ ...s, theme: normalizeThemeKey(theme) }));
   const setMood  = (mood)  => setState((s) => ({ ...s, mood }));
 
-  return { state, addTask, removeTask, completeSession, reset, setTheme, setMood };
+  return { state, addTask, updateTask, removeTask, completeSession, reset, setTheme, setMood };
 }
